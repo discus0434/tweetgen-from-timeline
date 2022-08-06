@@ -25,7 +25,11 @@ from .features import FeaturesManager
 def main():
     parser = ArgumentParser("Hugging Face Transformers ONNX exporter")
     parser.add_argument(
-        "-m", "--model", type=str, required=True, help="Model ID on huggingface.co or path on disk to load model from."
+        "-m",
+        "--model",
+        type=str,
+        required=True,
+        help="Model ID on huggingface.co or path on disk to load model from.",
     )
     parser.add_argument(
         "--feature",
@@ -33,15 +37,34 @@ def main():
         default="default",
         help="The type of features to export the model with.",
     )
-    parser.add_argument("--opset", type=int, default=None, help="ONNX opset version to export the model with.")
     parser.add_argument(
-        "--atol", type=float, default=None, help="Absolute difference tolerence when validating the model."
+        "--opset",
+        type=int,
+        default=None,
+        help="ONNX opset version to export the model with.",
     )
     parser.add_argument(
-        "--framework", type=str, choices=["pt", "tf"], default="pt", help="The framework to use for the ONNX export."
+        "--atol",
+        type=float,
+        default=None,
+        help="Absolute difference tolerence when validating the model.",
     )
-    parser.add_argument("output", type=Path, help="Path indicating where to store generated ONNX model.")
-    parser.add_argument("--cache_dir", type=str, default=None, help="Path indicating where to store cache.")
+    parser.add_argument(
+        "--framework",
+        type=str,
+        choices=["pt", "tf"],
+        default="pt",
+        help="The framework to use for the ONNX export.",
+    )
+    parser.add_argument(
+        "output", type=Path, help="Path indicating where to store generated ONNX model."
+    )
+    parser.add_argument(
+        "--cache_dir",
+        type=str,
+        default=None,
+        help="Path indicating where to store cache.",
+    )
     parser.add_argument(
         "--preprocessor",
         type=str,
@@ -52,7 +75,9 @@ def main():
 
     # Retrieve CLI arguments
     args = parser.parse_args()
-    args.output = args.output if args.output.is_file() else args.output.joinpath("model.onnx")
+    args.output = (
+        args.output if args.output.is_file() else args.output.joinpath("model.onnx")
+    )
 
     if not args.output.parent.exists():
         args.output.parent.mkdir(parents=True)
@@ -73,7 +98,9 @@ def main():
     model = FeaturesManager.get_model_from_feature(
         args.feature, args.model, framework=args.framework, cache_dir=args.cache_dir
     )
-    model_kind, model_onnx_config = FeaturesManager.check_supported_model_or_raise(model, feature=args.feature)
+    model_kind, model_onnx_config = FeaturesManager.check_supported_model_or_raise(
+        model, feature=args.feature
+    )
     onnx_config = model_onnx_config(model.config)
 
     # Ensure the requested opset is sufficient
@@ -97,7 +124,9 @@ def main():
     if args.atol is None:
         args.atol = onnx_config.atol_for_validation
 
-    validate_model_outputs(onnx_config, preprocessor, model, args.output, onnx_outputs, args.atol)
+    validate_model_outputs(
+        onnx_config, preprocessor, model, args.output, onnx_outputs, args.atol
+    )
     logger.info(f"All good, model saved at: {args.output.as_posix()}")
 
 

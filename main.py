@@ -11,6 +11,7 @@ from lib import make_client, get_tweets_from_timeline, finetune
 NUM_UPDATE_PER_DAY = 2
 NUM_TWEETS_PER_DAY = 72
 
+
 class TweetGenerator:
     def __init__(self):
 
@@ -18,7 +19,7 @@ class TweetGenerator:
         self.client = make_client()
 
         # Fetch tweets
-        get_tweets_from_timeline(self.client, max_tweets=600)
+        get_tweets_from_timeline(self.client, max_tweets=800)
 
         # Finetune and overwrite existing model
         finetune()
@@ -45,12 +46,19 @@ class TweetGenerator:
     def generate(self) -> str:
         prompt = ""
         while not prompt:
-            prompt = random.choice(self.data).replace("<s>", "").replace("</s>", "").replace("\n", "")
+            prompt = (
+                random.choice(self.data)
+                .replace("<s>", "")
+                .replace("</s>", "")
+                .replace("\n", "")
+            )
 
         if len(prompt) > 10:
             prompt = prompt[:10]
 
-        input_ids = self.tokenizer.encode(prompt, return_tensors="pt", add_special_tokens=False).to(self.device)
+        input_ids = self.tokenizer.encode(
+            prompt, return_tensors="pt", add_special_tokens=False
+        ).to(self.device)
 
         with torch.no_grad():
             output = self.model.generate(
@@ -84,6 +92,7 @@ def main():
             time.sleep(86400 // NUM_TWEETS_PER_DAY)
 
         del tweet_generator
+
 
 if __name__ == "__main__":
     main()

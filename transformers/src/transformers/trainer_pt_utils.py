@@ -37,7 +37,12 @@ from torch.utils.data import Dataset, IterableDataset, RandomSampler, Sampler
 from torch.utils.data.distributed import DistributedSampler
 
 from .tokenization_utils_base import BatchEncoding
-from .utils import is_sagemaker_mp_enabled, is_torch_tpu_available, is_training_run_on_sagemaker, logging
+from .utils import (
+    is_sagemaker_mp_enabled,
+    is_torch_tpu_available,
+    is_training_run_on_sagemaker,
+    logging,
+)
 
 
 if is_training_run_on_sagemaker():
@@ -75,7 +80,10 @@ def torch_pad_and_concatenate(tensor1, tensor2, padding_index=-100):
         return torch.cat((tensor1, tensor2), dim=0)
 
     # Let's figure out the new shape
-    new_shape = (tensor1.shape[0] + tensor2.shape[0], max(tensor1.shape[1], tensor2.shape[1])) + tensor1.shape[2:]
+    new_shape = (
+        tensor1.shape[0] + tensor2.shape[0],
+        max(tensor1.shape[1], tensor2.shape[1]),
+    ) + tensor1.shape[2:]
 
     # Now let's fill the result tensor
     result = tensor1.new_full(new_shape, padding_index)
@@ -93,7 +101,10 @@ def numpy_pad_and_concatenate(array1, array2, padding_index=-100):
         return np.concatenate((array1, array2), axis=0)
 
     # Let's figure out the new shape
-    new_shape = (array1.shape[0] + array2.shape[0], max(array1.shape[1], array2.shape[1])) + array1.shape[2:]
+    new_shape = (
+        array1.shape[0] + array2.shape[0],
+        max(array1.shape[1], array2.shape[1]),
+    ) + array1.shape[2:]
 
     # Now let's fill the result tensor
     result = np.full_like(array1, padding_index, shape=new_shape)
@@ -111,11 +122,18 @@ def nested_concat(tensors, new_tensors, padding_index=-100):
         new_tensors
     ), f"Expected `tensors` and `new_tensors` to have the same type but found {type(tensors)} and {type(new_tensors)}."
     if isinstance(tensors, (list, tuple)):
-        return type(tensors)(nested_concat(t, n, padding_index=padding_index) for t, n in zip(tensors, new_tensors))
+        return type(tensors)(
+            nested_concat(t, n, padding_index=padding_index)
+            for t, n in zip(tensors, new_tensors)
+        )
     elif isinstance(tensors, torch.Tensor):
-        return torch_pad_and_concatenate(tensors, new_tensors, padding_index=padding_index)
+        return torch_pad_and_concatenate(
+            tensors, new_tensors, padding_index=padding_index
+        )
     elif isinstance(tensors, np.ndarray):
-        return numpy_pad_and_concatenate(tensors, new_tensors, padding_index=padding_index)
+        return numpy_pad_and_concatenate(
+            tensors, new_tensors, padding_index=padding_index
+        )
     else:
         raise TypeError(f"Unsupported type for concatenation: got {type(tensors)}")
 
@@ -165,7 +183,9 @@ def nested_xla_mesh_reduce(tensors, name):
         import torch_xla.core.xla_model as xm
 
         if isinstance(tensors, (list, tuple)):
-            return type(tensors)(nested_xla_mesh_reduce(t, f"{name}_{i}") for i, t in enumerate(tensors))
+            return type(tensors)(
+                nested_xla_mesh_reduce(t, f"{name}_{i}") for i, t in enumerate(tensors)
+            )
         tensors = atleast_1d(tensors)
         return xm.mesh_reduce(name, tensors, torch.cat)
     else:
@@ -175,7 +195,9 @@ def nested_xla_mesh_reduce(tensors, name):
 def distributed_concat(tensor: Any, num_total_examples: Optional[int] = None) -> Any:
     try:
         if isinstance(tensor, (tuple, list)):
-            return type(tensor)(distributed_concat(t, num_total_examples) for t in tensor)
+            return type(tensor)(
+                distributed_concat(t, num_total_examples) for t in tensor
+            )
         tensor = atleast_1d(tensor)
         output_tensors = [tensor.clone() for _ in range(dist.get_world_size())]
         dist.all_gather(output_tensors, tensor)
@@ -196,7 +218,9 @@ def distributed_broadcast_scalars(
 ) -> torch.Tensor:
     try:
         tensorized_scalar = torch.tensor(scalars).to(device)
-        output_tensors = [tensorized_scalar.clone() for _ in range(dist.get_world_size())]
+        output_tensors = [
+            tensorized_scalar.clone() for _ in range(dist.get_world_size())
+        ]
         dist.all_gather(output_tensors, tensorized_scalar)
         concat = torch.cat(output_tensors, dim=0)
 
@@ -251,7 +275,11 @@ class DistributedSamplerWithLoop(DistributedSampler):
 
     def __iter__(self):
         indices = list(super().__iter__())
-        remainder = 0 if len(indices) % self.batch_size == 0 else self.batch_size - len(indices) % self.batch_size
+        remainder = (
+            0
+            if len(indices) % self.batch_size == 0
+            else self.batch_size - len(indices) % self.batch_size
+        )
         # DistributedSampler already added samples from the beginning to make the number of samples a round multiple
         # of the world size, so we skip those.
         start_remainder = 1 if self.rank < len(self.dataset) % self.num_replicas else 0
@@ -288,7 +316,9 @@ class SequentialDistributedSampler(Sampler):
         num_samples = len(self.dataset)
         # Add extra samples to make num_samples a multiple of batch_size if passed
         if batch_size is not None:
-            self.num_samples = int(math.ceil(num_samples / (batch_size * num_replicas))) * batch_size
+            self.num_samples = (
+                int(math.ceil(num_samples / (batch_size * num_replicas))) * batch_size
+            )
         else:
             self.num_samples = int(math.ceil(num_samples / num_replicas))
         self.total_size = self.num_samples * self.num_replicas
@@ -304,7 +334,9 @@ class SequentialDistributedSampler(Sampler):
         ), f"Indices length {len(indices)} and total size {self.total_size} mismatched"
 
         # subsample
-        indices = indices[self.rank * self.num_samples : (self.rank + 1) * self.num_samples]
+        indices = indices[
+            self.rank * self.num_samples : (self.rank + 1) * self.num_samples
+        ]
         assert (
             len(indices) == self.num_samples
         ), f"Indices length {len(indices)} and sample number {self.num_samples} mismatched"
@@ -318,7 +350,9 @@ class SequentialDistributedSampler(Sampler):
 def get_tpu_sampler(dataset: torch.utils.data.Dataset, batch_size: int):
     if xm.xrt_world_size() <= 1:
         return RandomSampler(dataset)
-    return DistributedSampler(dataset, num_replicas=xm.xrt_world_size(), rank=xm.get_ordinal())
+    return DistributedSampler(
+        dataset, num_replicas=xm.xrt_world_size(), rank=xm.get_ordinal()
+    )
 
 
 def nested_new_like(arrays, num_samples, padding_index=-100):
@@ -330,7 +364,11 @@ def nested_new_like(arrays, num_samples, padding_index=-100):
 
 def expand_like(arrays, new_seq_length, padding_index=-100):
     """Expand the `arrays` so that the second dimension grows to `new_seq_length`. Uses `padding_index` for padding."""
-    result = np.full_like(arrays, padding_index, shape=(arrays.shape[0], new_seq_length) + arrays.shape[2:])
+    result = np.full_like(
+        arrays,
+        padding_index,
+        shape=(arrays.shape[0], new_seq_length) + arrays.shape[2:],
+    )
     result[:, : arrays.shape[1]] = arrays
     return result
 
@@ -389,14 +427,18 @@ class DistributedTensorGatherer:
             The padding index to use if the arrays don't all have the same sequence length.
     """
 
-    def __init__(self, world_size, num_samples, make_multiple_of=None, padding_index=-100):
+    def __init__(
+        self, world_size, num_samples, make_multiple_of=None, padding_index=-100
+    ):
         warnings.warn(
             "DistributedTensorGatherer is deprecated and will be removed in v5 of Transformers.",
             FutureWarning,
         )
         self.world_size = world_size
         self.num_samples = num_samples
-        total_size = world_size if make_multiple_of is None else world_size * make_multiple_of
+        total_size = (
+            world_size if make_multiple_of is None else world_size * make_multiple_of
+        )
         self.total_samples = int(np.ceil(num_samples / total_size)) * total_size
         self.process_length = self.total_samples // world_size
         self._storage = None
@@ -411,7 +453,9 @@ class DistributedTensorGatherer:
         if arrays is None:
             return
         if self._storage is None:
-            self._storage = nested_new_like(arrays, self.total_samples, padding_index=self.padding_index)
+            self._storage = nested_new_like(
+                arrays, self.total_samples, padding_index=self.padding_index
+            )
             self._offsets = list(range(0, self.total_samples, self.process_length))
 
         slice_len, self._storage = self._nested_set_tensors(self._storage, arrays)
@@ -429,14 +473,18 @@ class DistributedTensorGatherer:
         slice_len = arrays.shape[0] // self.world_size
         for i in range(self.world_size):
             if len(arrays.shape) == 1:
-                storage[self._offsets[i] : self._offsets[i] + slice_len] = arrays[i * slice_len : (i + 1) * slice_len]
+                storage[self._offsets[i] : self._offsets[i] + slice_len] = arrays[
+                    i * slice_len : (i + 1) * slice_len
+                ]
             else:
                 # Expand the array on the fly if needed.
                 if len(storage.shape) > 1 and storage.shape[1] < arrays.shape[1]:
-                    storage = expand_like(storage, arrays.shape[1], padding_index=self.padding_index)
-                storage[self._offsets[i] : self._offsets[i] + slice_len, : arrays.shape[1]] = arrays[
-                    i * slice_len : (i + 1) * slice_len
-                ]
+                    storage = expand_like(
+                        storage, arrays.shape[1], padding_index=self.padding_index
+                    )
+                storage[
+                    self._offsets[i] : self._offsets[i] + slice_len, : arrays.shape[1]
+                ] = arrays[i * slice_len : (i + 1) * slice_len]
         return slice_len, storage
 
     def finalize(self):
@@ -447,7 +495,9 @@ class DistributedTensorGatherer:
         if self._storage is None:
             return
         if self._offsets[0] != self.process_length:
-            logger.warning("Not all data has been set. Are you sure you passed all values?")
+            logger.warning(
+                "Not all data has been set. Are you sure you passed all values?"
+            )
         return nested_truncate(self._storage, self.num_samples)
 
 
@@ -467,7 +517,11 @@ class LabelSmoother:
     ignore_index: int = -100
 
     def __call__(self, model_output, labels, shift_labels=False):
-        logits = model_output["logits"] if isinstance(model_output, dict) else model_output[0]
+        logits = (
+            model_output["logits"]
+            if isinstance(model_output, dict)
+            else model_output[0]
+        )
         if shift_labels:
             logits = logits[..., :-1, :].contiguous()
             labels = labels[..., 1:].contiguous()
@@ -490,11 +544,15 @@ class LabelSmoother:
         # Take the mean over the label dimensions, then divide by the number of active elements (i.e. not-padded):
         num_active_elements = padding_mask.numel() - padding_mask.long().sum()
         nll_loss = nll_loss.sum() / num_active_elements
-        smoothed_loss = smoothed_loss.sum() / (num_active_elements * log_probs.shape[-1])
+        smoothed_loss = smoothed_loss.sum() / (
+            num_active_elements * log_probs.shape[-1]
+        )
         return (1 - self.epsilon) * nll_loss + self.epsilon * smoothed_loss
 
 
-def get_length_grouped_indices(lengths, batch_size, mega_batch_mult=None, generator=None):
+def get_length_grouped_indices(
+    lengths, batch_size, mega_batch_mult=None, generator=None
+):
     """
     Return a list of indices so that each slice of `batch_size` consecutive indices correspond to elements of similar
     lengths. To do this, the indices are:
@@ -516,15 +574,24 @@ def get_length_grouped_indices(lengths, batch_size, mega_batch_mult=None, genera
     # We need to use torch for the random part as a distributed sampler will set the random seed for torch.
     indices = torch.randperm(len(lengths), generator=generator)
     megabatch_size = mega_batch_mult * batch_size
-    megabatches = [indices[i : i + megabatch_size].tolist() for i in range(0, len(lengths), megabatch_size)]
-    megabatches = [list(sorted(megabatch, key=lambda i: lengths[i], reverse=True)) for megabatch in megabatches]
+    megabatches = [
+        indices[i : i + megabatch_size].tolist()
+        for i in range(0, len(lengths), megabatch_size)
+    ]
+    megabatches = [
+        list(sorted(megabatch, key=lambda i: lengths[i], reverse=True))
+        for megabatch in megabatches
+    ]
 
     # The rest is to get the biggest batch first.
     # Since each megabatch is sorted by descending length, the longest element is the first
     megabatch_maximums = [lengths[megabatch[0]] for megabatch in megabatches]
     max_idx = torch.argmax(torch.tensor(megabatch_maximums)).item()
     # Switch to put the longest element in first position
-    megabatches[0][0], megabatches[max_idx][0] = megabatches[max_idx][0], megabatches[0][0]
+    megabatches[0][0], megabatches[max_idx][0] = (
+        megabatches[max_idx][0],
+        megabatches[0][0],
+    )
 
     return [i for megabatch in megabatches for i in megabatch]
 
@@ -548,9 +615,14 @@ class LengthGroupedSampler(Sampler):
 
         self.batch_size = batch_size
         if lengths is None:
-            model_input_name = model_input_name if model_input_name is not None else "input_ids"
+            model_input_name = (
+                model_input_name if model_input_name is not None else "input_ids"
+            )
             if (
-                not (isinstance(dataset[0], dict) or isinstance(dataset[0], BatchEncoding))
+                not (
+                    isinstance(dataset[0], dict)
+                    or isinstance(dataset[0], BatchEncoding)
+                )
                 or model_input_name not in dataset[0]
             ):
                 raise ValueError(
@@ -571,7 +643,9 @@ class LengthGroupedSampler(Sampler):
         return len(self.lengths)
 
     def __iter__(self):
-        indices = get_length_grouped_indices(self.lengths, self.batch_size, generator=self.generator)
+        indices = get_length_grouped_indices(
+            self.lengths, self.batch_size, generator=self.generator
+        )
         return iter(indices)
 
 
@@ -610,9 +684,14 @@ class DistributedLengthGroupedSampler(DistributedSampler):
         self.drop_last = drop_last
 
         if lengths is None:
-            model_input_name = model_input_name if model_input_name is not None else "input_ids"
+            model_input_name = (
+                model_input_name if model_input_name is not None else "input_ids"
+            )
             if (
-                not (isinstance(dataset[0], dict) or isinstance(dataset[0], BatchEncoding))
+                not (
+                    isinstance(dataset[0], dict)
+                    or isinstance(dataset[0], BatchEncoding)
+                )
                 or model_input_name not in dataset[0]
             ):
                 raise ValueError(
@@ -635,7 +714,9 @@ class DistributedLengthGroupedSampler(DistributedSampler):
             # Split to nearest available length that is evenly divisible.
             # This is to ensure each rank receives the same amount of data when
             # using this Sampler.
-            self.num_samples = math.ceil((len(self.lengths) - self.num_replicas) / self.num_replicas)
+            self.num_samples = math.ceil(
+                (len(self.lengths) - self.num_replicas) / self.num_replicas
+            )
         else:
             self.num_samples = math.ceil(len(self.lengths) / self.num_replicas)
         self.total_size = self.num_samples * self.num_replicas
@@ -687,7 +768,11 @@ class ShardSampler(Sampler):
 
         self.total_batch_size = total_batch_size = batch_size * num_processes
 
-        num_batches = len(dataset) // total_batch_size if drop_last else math.ceil(len(dataset) / total_batch_size)
+        num_batches = (
+            len(dataset) // total_batch_size
+            if drop_last
+            else math.ceil(len(dataset) / total_batch_size)
+        )
         self.total_num_samples = num_batches * total_batch_size
 
     def __iter__(self):
@@ -699,7 +784,11 @@ class ShardSampler(Sampler):
             indices += indices[: (self.total_num_samples - len(indices))]
 
         result = []
-        for batch_start in range(self.batch_size * self.process_index, self.total_num_samples, self.total_batch_size):
+        for batch_start in range(
+            self.batch_size * self.process_index,
+            self.total_num_samples,
+            self.total_batch_size,
+        ):
             result += indices[batch_start : batch_start + self.batch_size]
 
         return iter(result)
@@ -782,7 +871,10 @@ class IterableDatasetShard(IterableDataset):
         ):
             self.dataset.generator.manual_seed(self.seed + self.epoch)
         real_batch_size = self.batch_size * self.num_processes
-        process_slice = range(self.process_index * self.batch_size, (self.process_index + 1) * self.batch_size)
+        process_slice = range(
+            self.process_index * self.batch_size,
+            (self.process_index + 1) * self.batch_size,
+        )
 
         first_batch = None
         current_batch = []
@@ -809,9 +901,14 @@ class IterableDatasetShard(IterableDataset):
     def __len__(self):
         # Will raise an error if the underlying dataset is not sized.
         if self.drop_last:
-            return (len(self.dataset) // (self.batch_size * self.num_processes)) * self.batch_size
+            return (
+                len(self.dataset) // (self.batch_size * self.num_processes)
+            ) * self.batch_size
         else:
-            return math.ceil(len(self.dataset) / (self.batch_size * self.num_processes)) * self.batch_size
+            return (
+                math.ceil(len(self.dataset) / (self.batch_size * self.num_processes))
+                * self.batch_size
+            )
 
 
 # In order to keep `trainer.py` compact and easy to understand, place any secondary PT Trainer
@@ -827,7 +924,9 @@ def _get_learning_rate(self):
             last_lr = self.lr_scheduler.get_last_lr()[0]
         except AssertionError as e:
             if "need to call step" in str(e):
-                logger.warning("tried to get lr value before scheduler/optimizer started stepping, returning lr=0")
+                logger.warning(
+                    "tried to get lr value before scheduler/optimizer started stepping, returning lr=0"
+                )
                 last_lr = 0
             else:
                 raise
@@ -835,7 +934,8 @@ def _get_learning_rate(self):
         last_lr = (
             # backward compatibility for pytorch schedulers
             self.lr_scheduler.get_last_lr()[0]
-            if version.parse(version.parse(torch.__version__).base_version) >= version.parse("1.4")
+            if version.parse(version.parse(torch.__version__).base_version)
+            >= version.parse("1.4")
             else self.lr_scheduler.get_lr()[0]
         )
     return last_lr

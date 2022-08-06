@@ -78,10 +78,16 @@ if is_torch_available():
         MODEL_FOR_TOKEN_CLASSIFICATION_MAPPING,
         MODEL_MAPPING,
     )
-    from transformers.models.bert.modeling_bert import BERT_PRETRAINED_MODEL_ARCHIVE_LIST
-    from transformers.models.gpt2.modeling_gpt2 import GPT2_PRETRAINED_MODEL_ARCHIVE_LIST
+    from transformers.models.bert.modeling_bert import (
+        BERT_PRETRAINED_MODEL_ARCHIVE_LIST,
+    )
+    from transformers.models.gpt2.modeling_gpt2 import (
+        GPT2_PRETRAINED_MODEL_ARCHIVE_LIST,
+    )
     from transformers.models.t5.modeling_t5 import T5_PRETRAINED_MODEL_ARCHIVE_LIST
-    from transformers.models.tapas.modeling_tapas import TAPAS_PRETRAINED_MODEL_ARCHIVE_LIST
+    from transformers.models.tapas.modeling_tapas import (
+        TAPAS_PRETRAINED_MODEL_ARCHIVE_LIST,
+    )
 
 
 @require_torch
@@ -94,7 +100,9 @@ class AutoModelTest(unittest.TestCase):
             self.assertIsInstance(config, BertConfig)
 
             model = AutoModel.from_pretrained(model_name)
-            model, loading_info = AutoModel.from_pretrained(model_name, output_loading_info=True)
+            model, loading_info = AutoModel.from_pretrained(
+                model_name, output_loading_info=True
+            )
             self.assertIsNotNone(model)
             self.assertIsInstance(model, BertModel)
 
@@ -111,7 +119,9 @@ class AutoModelTest(unittest.TestCase):
             self.assertIsInstance(config, BertConfig)
 
             model = AutoModelForPreTraining.from_pretrained(model_name)
-            model, loading_info = AutoModelForPreTraining.from_pretrained(model_name, output_loading_info=True)
+            model, loading_info = AutoModelForPreTraining.from_pretrained(
+                model_name, output_loading_info=True
+            )
             self.assertIsNotNone(model)
             self.assertIsInstance(model, BertForPreTraining)
             # Only one value should not be initialized and in the missing keys.
@@ -128,7 +138,9 @@ class AutoModelTest(unittest.TestCase):
             self.assertIsInstance(config, BertConfig)
 
             model = AutoModelWithLMHead.from_pretrained(model_name)
-            model, loading_info = AutoModelWithLMHead.from_pretrained(model_name, output_loading_info=True)
+            model, loading_info = AutoModelWithLMHead.from_pretrained(
+                model_name, output_loading_info=True
+            )
             self.assertIsNotNone(model)
             self.assertIsInstance(model, BertForMaskedLM)
 
@@ -140,7 +152,9 @@ class AutoModelTest(unittest.TestCase):
             self.assertIsInstance(config, GPT2Config)
 
             model = AutoModelForCausalLM.from_pretrained(model_name)
-            model, loading_info = AutoModelForCausalLM.from_pretrained(model_name, output_loading_info=True)
+            model, loading_info = AutoModelForCausalLM.from_pretrained(
+                model_name, output_loading_info=True
+            )
             self.assertIsNotNone(model)
             self.assertIsInstance(model, GPT2LMHeadModel)
 
@@ -152,7 +166,9 @@ class AutoModelTest(unittest.TestCase):
             self.assertIsInstance(config, BertConfig)
 
             model = AutoModelForMaskedLM.from_pretrained(model_name)
-            model, loading_info = AutoModelForMaskedLM.from_pretrained(model_name, output_loading_info=True)
+            model, loading_info = AutoModelForMaskedLM.from_pretrained(
+                model_name, output_loading_info=True
+            )
             self.assertIsNotNone(model)
             self.assertIsInstance(model, BertForMaskedLM)
 
@@ -164,7 +180,9 @@ class AutoModelTest(unittest.TestCase):
             self.assertIsInstance(config, T5Config)
 
             model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
-            model, loading_info = AutoModelForSeq2SeqLM.from_pretrained(model_name, output_loading_info=True)
+            model, loading_info = AutoModelForSeq2SeqLM.from_pretrained(
+                model_name, output_loading_info=True
+            )
             self.assertIsNotNone(model)
             self.assertIsInstance(model, T5ForConditionalGeneration)
 
@@ -190,7 +208,9 @@ class AutoModelTest(unittest.TestCase):
             self.assertIsInstance(config, BertConfig)
 
             model = AutoModelForQuestionAnswering.from_pretrained(model_name)
-            model, loading_info = AutoModelForQuestionAnswering.from_pretrained(model_name, output_loading_info=True)
+            model, loading_info = AutoModelForQuestionAnswering.from_pretrained(
+                model_name, output_loading_info=True
+            )
             self.assertIsNotNone(model)
             self.assertIsInstance(model, BertForQuestionAnswering)
 
@@ -217,7 +237,9 @@ class AutoModelTest(unittest.TestCase):
             self.assertIsInstance(config, BertConfig)
 
             model = AutoModelForTokenClassification.from_pretrained(model_name)
-            model, loading_info = AutoModelForTokenClassification.from_pretrained(model_name, output_loading_info=True)
+            model, loading_info = AutoModelForTokenClassification.from_pretrained(
+                model_name, output_loading_info=True
+            )
             self.assertIsNotNone(model)
             self.assertIsInstance(model, BertForTokenClassification)
 
@@ -270,11 +292,15 @@ class AutoModelTest(unittest.TestCase):
                 del MODEL_MAPPING._extra_content[CustomConfig]
 
     def test_from_pretrained_dynamic_model_distant(self):
-        model = AutoModel.from_pretrained("hf-internal-testing/test_dynamic_model", trust_remote_code=True)
+        model = AutoModel.from_pretrained(
+            "hf-internal-testing/test_dynamic_model", trust_remote_code=True
+        )
         self.assertEqual(model.__class__.__name__, "NewModel")
 
         # This one uses a relative import to a util file, this checks it is downloaded and used properly.
-        model = AutoModel.from_pretrained("hf-internal-testing/test_dynamic_model_with_util", trust_remote_code=True)
+        model = AutoModel.from_pretrained(
+            "hf-internal-testing/test_dynamic_model_with_util", trust_remote_code=True
+        )
         self.assertEqual(model.__class__.__name__, "NewModel")
 
     def test_new_model_registration(self):
@@ -330,13 +356,15 @@ class AutoModelTest(unittest.TestCase):
 
     def test_repo_not_found(self):
         with self.assertRaisesRegex(
-            EnvironmentError, "bert-base is not a local folder and is not a valid model identifier"
+            EnvironmentError,
+            "bert-base is not a local folder and is not a valid model identifier",
         ):
             _ = AutoModel.from_pretrained("bert-base")
 
     def test_revision_not_found(self):
         with self.assertRaisesRegex(
-            EnvironmentError, r"aaaaaa is not a valid git identifier \(branch name, tag name or commit id\)"
+            EnvironmentError,
+            r"aaaaaa is not a valid git identifier \(branch name, tag name or commit id\)",
         ):
             _ = AutoModel.from_pretrained(DUMMY_UNKNOWN_IDENTIFIER, revision="aaaaaa")
 
@@ -348,9 +376,13 @@ class AutoModelTest(unittest.TestCase):
             _ = AutoModel.from_pretrained("hf-internal-testing/config-no-model")
 
     def test_model_from_tf_suggestion(self):
-        with self.assertRaisesRegex(EnvironmentError, "Use `from_tf=True` to load this model"):
+        with self.assertRaisesRegex(
+            EnvironmentError, "Use `from_tf=True` to load this model"
+        ):
             _ = AutoModel.from_pretrained("hf-internal-testing/tiny-bert-tf-only")
 
     def test_model_from_flax_suggestion(self):
-        with self.assertRaisesRegex(EnvironmentError, "Use `from_flax=True` to load this model"):
+        with self.assertRaisesRegex(
+            EnvironmentError, "Use `from_flax=True` to load this model"
+        ):
             _ = AutoModel.from_pretrained("hf-internal-testing/tiny-bert-flax-only")

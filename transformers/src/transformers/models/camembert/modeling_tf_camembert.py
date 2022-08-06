@@ -164,7 +164,8 @@ class TFCamembertForQuestionAnswering(TFRobertaForQuestionAnswering):
 
 
 @add_start_docstrings(
-    """CamemBERT Model with a `language modeling` head on top for CLM fine-tuning.""", CAMEMBERT_START_DOCSTRING
+    """CamemBERT Model with a `language modeling` head on top for CLM fine-tuning.""",
+    CAMEMBERT_START_DOCSTRING,
 )
 class TFCamembertForCausalLM(TFRobertaForCausalLM):
     """

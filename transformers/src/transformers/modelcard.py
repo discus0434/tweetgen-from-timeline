@@ -91,7 +91,8 @@ class ModelCard:
 
     def __init__(self, **kwargs):
         warnings.warn(
-            "The class `ModelCard` is deprecated and will be removed in version 5 of Transformers", FutureWarning
+            "The class `ModelCard` is deprecated and will be removed in version 5 of Transformers",
+            FutureWarning,
         )
         # Recommended attributes from https://arxiv.org/abs/1810.03993 (see papers)
         self.model_details = kwargs.pop("model_details", {})
@@ -116,7 +117,9 @@ class ModelCard:
         """Save a model card object to the directory or file `save_directory_or_file`."""
         if os.path.isdir(save_directory_or_file):
             # If we save using the predefined names, we can load using `from_pretrained`
-            output_model_card_file = os.path.join(save_directory_or_file, MODEL_CARD_NAME)
+            output_model_card_file = os.path.join(
+                save_directory_or_file, MODEL_CARD_NAME
+            )
         else:
             output_model_card_file = save_directory_or_file
 
@@ -178,7 +181,9 @@ class ModelCard:
         modelcard = ModelCard.from_pretrained("bert-base-uncased", output_attentions=True, foo=False)
         ```"""
         # This imports every model so let's do it dynamically here.
-        from transformers.models.auto.configuration_auto import ALL_PRETRAINED_CONFIG_ARCHIVE_MAP
+        from transformers.models.auto.configuration_auto import (
+            ALL_PRETRAINED_CONFIG_ARCHIVE_MAP,
+        )
 
         cache_dir = kwargs.pop("cache_dir", None)
         proxies = kwargs.pop("proxies", None)
@@ -193,15 +198,26 @@ class ModelCard:
         if pretrained_model_name_or_path in ALL_PRETRAINED_CONFIG_ARCHIVE_MAP:
             # For simplicity we use the same pretrained url than the configuration files
             # but with a different suffix (modelcard.json). This suffix is replaced below.
-            model_card_file = ALL_PRETRAINED_CONFIG_ARCHIVE_MAP[pretrained_model_name_or_path]
+            model_card_file = ALL_PRETRAINED_CONFIG_ARCHIVE_MAP[
+                pretrained_model_name_or_path
+            ]
         elif os.path.isdir(pretrained_model_name_or_path):
-            model_card_file = os.path.join(pretrained_model_name_or_path, MODEL_CARD_NAME)
-        elif os.path.isfile(pretrained_model_name_or_path) or is_remote_url(pretrained_model_name_or_path):
+            model_card_file = os.path.join(
+                pretrained_model_name_or_path, MODEL_CARD_NAME
+            )
+        elif os.path.isfile(pretrained_model_name_or_path) or is_remote_url(
+            pretrained_model_name_or_path
+        ):
             model_card_file = pretrained_model_name_or_path
         else:
-            model_card_file = hf_bucket_url(pretrained_model_name_or_path, filename=MODEL_CARD_NAME, mirror=None)
+            model_card_file = hf_bucket_url(
+                pretrained_model_name_or_path, filename=MODEL_CARD_NAME, mirror=None
+            )
 
-        if find_from_standard_name or pretrained_model_name_or_path in ALL_PRETRAINED_CONFIG_ARCHIVE_MAP:
+        if (
+            find_from_standard_name
+            or pretrained_model_name_or_path in ALL_PRETRAINED_CONFIG_ARCHIVE_MAP
+        ):
             model_card_file = model_card_file.replace(CONFIG_NAME, MODEL_CARD_NAME)
             model_card_file = model_card_file.replace(WEIGHTS_NAME, MODEL_CARD_NAME)
             model_card_file = model_card_file.replace(TF2_WEIGHTS_NAME, MODEL_CARD_NAME)
@@ -209,12 +225,17 @@ class ModelCard:
         try:
             # Load from URL or cache if already cached
             resolved_model_card_file = cached_path(
-                model_card_file, cache_dir=cache_dir, proxies=proxies, user_agent=user_agent
+                model_card_file,
+                cache_dir=cache_dir,
+                proxies=proxies,
+                user_agent=user_agent,
             )
             if resolved_model_card_file == model_card_file:
                 logger.info(f"loading model card file {model_card_file}")
             else:
-                logger.info(f"loading model card file {model_card_file} from cache at {resolved_model_card_file}")
+                logger.info(
+                    f"loading model card file {model_card_file} from cache at {resolved_model_card_file}"
+                )
             # Load model card
             modelcard = cls.from_json_file(resolved_model_card_file)
 
@@ -415,13 +436,19 @@ class TrainingSummary:
         dataset_args = _listify(self.dataset_args)
         dataset_metadata = _listify(self.dataset_metadata)
         if len(dataset_args) < len(dataset_tags):
-            dataset_args = dataset_args + [None] * (len(dataset_tags) - len(dataset_args))
+            dataset_args = dataset_args + [None] * (
+                len(dataset_tags) - len(dataset_args)
+            )
         dataset_mapping = {tag: name for tag, name in zip(dataset_tags, dataset_names)}
         dataset_arg_mapping = {tag: arg for tag, arg in zip(dataset_tags, dataset_args)}
-        dataset_metadata_mapping = {tag: metadata for tag, metadata in zip(dataset_tags, dataset_metadata)}
+        dataset_metadata_mapping = {
+            tag: metadata for tag, metadata in zip(dataset_tags, dataset_metadata)
+        }
 
         task_mapping = {
-            task: TASK_TAG_TO_NAME_MAPPING[task] for task in _listify(self.tasks) if task in TASK_TAG_TO_NAME_MAPPING
+            task: TASK_TAG_TO_NAME_MAPPING[task]
+            for task in _listify(self.tasks)
+            if task in TASK_TAG_TO_NAME_MAPPING
         }
 
         model_index["results"] = []
@@ -434,7 +461,11 @@ class TrainingSummary:
             dataset_mapping = {None: None}
 
         # One entry per dataset and per task
-        all_possibilities = [(task_tag, ds_tag) for task_tag in task_mapping for ds_tag in dataset_mapping]
+        all_possibilities = [
+            (task_tag, ds_tag)
+            for task_tag in task_mapping
+            for ds_tag in dataset_mapping
+        ]
         for task_tag, ds_tag in all_possibilities:
             result = {}
             if task_tag is not None:
@@ -465,7 +496,9 @@ class TrainingSummary:
             if "task" in result and "dataset" in result and "metrics" in result:
                 model_index["results"].append(result)
             else:
-                logger.info(f"Dropping the following result as it does not have all the necessary fields:\n{result}")
+                logger.info(
+                    f"Dropping the following result as it does not have all the necessary fields:\n{result}"
+                )
 
         return [model_index]
 
@@ -477,7 +510,9 @@ class TrainingSummary:
         metadata = _insert_value(metadata, "license", self.license)
         metadata = _insert_values_as_list(metadata, "tags", self.tags)
         metadata = _insert_values_as_list(metadata, "datasets", self.dataset_tags)
-        metadata = _insert_values_as_list(metadata, "metrics", list(metric_mapping.keys()))
+        metadata = _insert_values_as_list(
+            metadata, "metrics", list(metric_mapping.keys())
+        )
         metadata["model-index"] = self.create_model_index(metric_mapping)
 
         return metadata
@@ -514,12 +549,18 @@ class TrainingSummary:
                 model_card += f"the {self.dataset[0]} dataset."
             else:
                 model_card += (
-                    ", ".join([f"the {ds}" for ds in self.dataset[:-1]]) + f" and the {self.dataset[-1]} datasets."
+                    ", ".join([f"the {ds}" for ds in self.dataset[:-1]])
+                    + f" and the {self.dataset[-1]} datasets."
                 )
 
         if self.eval_results is not None:
             model_card += "\nIt achieves the following results on the evaluation set:\n"
-            model_card += "\n".join([f"- {name}: {_maybe_round(value)}" for name, value in self.eval_results.items()])
+            model_card += "\n".join(
+                [
+                    f"- {name}: {_maybe_round(value)}"
+                    for name, value in self.eval_results.items()
+                ]
+            )
         model_card += "\n"
 
         model_card += "\n## Model description\n\nMore information needed\n"
@@ -530,7 +571,9 @@ class TrainingSummary:
         model_card += "\n### Training hyperparameters\n"
         if self.hyperparameters is not None:
             model_card += "\nThe following hyperparameters were used during training:\n"
-            model_card += "\n".join([f"- {name}: {value}" for name, value in self.hyperparameters.items()])
+            model_card += "\n".join(
+                [f"- {name}: {value}" for name, value in self.hyperparameters.items()]
+            )
             model_card += "\n"
         else:
             model_card += "\nMore information needed\n"
@@ -578,13 +621,24 @@ class TrainingSummary:
         dataset_args=None,
     ):
         # Infer default from dataset
-        one_dataset = trainer.train_dataset if trainer.train_dataset is not None else trainer.eval_dataset
-        if is_hf_dataset(one_dataset) and (dataset_tags is None or dataset_args is None):
+        one_dataset = (
+            trainer.train_dataset
+            if trainer.train_dataset is not None
+            else trainer.eval_dataset
+        )
+        if is_hf_dataset(one_dataset) and (
+            dataset_tags is None or dataset_args is None
+        ):
             default_tag = one_dataset.builder_name
             # Those are not real datasets from the Hub so we exclude them.
             if default_tag not in ["csv", "json", "pandas", "parquet", "text"]:
                 if dataset_metadata is None:
-                    dataset_metadata = [{"config": one_dataset.config_name, "split": str(one_dataset.split)}]
+                    dataset_metadata = [
+                        {
+                            "config": one_dataset.config_name,
+                            "split": str(one_dataset.split),
+                        }
+                    ]
                 if dataset_tags is None:
                     dataset_tags = [default_tag]
                 if dataset_args is None:
@@ -655,7 +709,9 @@ class TrainingSummary:
     ):
         # Infer default from dataset
         if dataset is not None:
-            if is_hf_dataset(dataset) and (dataset_tags is None or dataset_args is None):
+            if is_hf_dataset(dataset) and (
+                dataset_tags is None or dataset_args is None
+            ):
                 default_tag = dataset.builder_name
                 # Those are not real datasets from the Hub so we exclude them.
                 if default_tag not in ["csv", "json", "pandas", "parquet", "text"]:
@@ -728,11 +784,16 @@ def parse_keras_history(logs):
         logs = logs.history
     else:
         # Training logs is a list of dicts, let's invert it to a dict of lists to match a History object
-        logs = {log_key: [single_dict[log_key] for single_dict in logs] for log_key in logs[0]}
+        logs = {
+            log_key: [single_dict[log_key] for single_dict in logs]
+            for log_key in logs[0]
+        }
 
     lines = []
     for i in range(len(logs["epoch"])):
-        epoch_dict = {log_key: log_value_list[i] for log_key, log_value_list in logs.items()}
+        epoch_dict = {
+            log_key: log_value_list[i] for log_key, log_value_list in logs.items()
+        }
         values = dict()
         for k, v in epoch_dict.items():
             if k.startswith("val_"):
@@ -802,8 +863,16 @@ def parse_log_history(log_history):
         for key, value in log_history[idx].items():
             if key.startswith("eval_"):
                 key = key[5:]
-            if key not in ["runtime", "samples_per_second", "steps_per_second", "epoch", "step"]:
-                camel_cased_key = " ".join([part.capitalize() for part in key.split("_")])
+            if key not in [
+                "runtime",
+                "samples_per_second",
+                "steps_per_second",
+                "epoch",
+                "step",
+            ]:
+                camel_cased_key = " ".join(
+                    [part.capitalize() for part in key.split("_")]
+                )
                 eval_results[camel_cased_key] = value
         return train_log, lines, eval_results
     else:
@@ -818,19 +887,27 @@ def extract_hyperparameters_from_keras(model):
         hyperparameters["optimizer"] = model.optimizer.get_config()
     else:
         hyperparameters["optimizer"] = None
-    hyperparameters["training_precision"] = tf.keras.mixed_precision.global_policy().name
+    hyperparameters[
+        "training_precision"
+    ] = tf.keras.mixed_precision.global_policy().name
 
     return hyperparameters
 
 
 def _maybe_round(v, decimals=4):
-    if isinstance(v, float) and len(str(v).split(".")) > 1 and len(str(v).split(".")[1]) > decimals:
+    if (
+        isinstance(v, float)
+        and len(str(v).split(".")) > 1
+        and len(str(v).split(".")[1]) > decimals
+    ):
         return f"{v:.{decimals}f}"
     return str(v)
 
 
 def _regular_table_line(values, col_widths):
-    values_with_space = [f"| {v}" + " " * (w - len(v) + 1) for v, w in zip(values, col_widths)]
+    values_with_space = [
+        f"| {v}" + " " * (w - len(v) + 1) for v, w in zip(values, col_widths)
+    ]
     return "".join(values_with_space) + "|\n"
 
 
@@ -854,7 +931,9 @@ def make_markdown_table(lines):
     table = _regular_table_line(list(lines[0].keys()), list(col_widths.values()))
     table += _second_table_line(list(col_widths.values()))
     for line in lines:
-        table += _regular_table_line([_maybe_round(v) for v in line.values()], list(col_widths.values()))
+        table += _regular_table_line(
+            [_maybe_round(v) for v in line.values()], list(col_widths.values())
+        )
     return table
 
 
@@ -869,17 +948,26 @@ _TRAINING_ARGS_KEYS = [
 def extract_hyperparameters_from_trainer(trainer):
     hyperparameters = {k: getattr(trainer.args, k) for k in _TRAINING_ARGS_KEYS}
 
-    if trainer.args.parallel_mode not in [ParallelMode.NOT_PARALLEL, ParallelMode.NOT_DISTRIBUTED]:
+    if trainer.args.parallel_mode not in [
+        ParallelMode.NOT_PARALLEL,
+        ParallelMode.NOT_DISTRIBUTED,
+    ]:
         hyperparameters["distributed_type"] = (
-            "multi-GPU" if trainer.args.parallel_mode == ParallelMode.DISTRIBUTED else trainer.args.parallel_mode.value
+            "multi-GPU"
+            if trainer.args.parallel_mode == ParallelMode.DISTRIBUTED
+            else trainer.args.parallel_mode.value
         )
     if trainer.args.world_size > 1:
         hyperparameters["num_devices"] = trainer.args.world_size
     if trainer.args.gradient_accumulation_steps > 1:
-        hyperparameters["gradient_accumulation_steps"] = trainer.args.gradient_accumulation_steps
+        hyperparameters[
+            "gradient_accumulation_steps"
+        ] = trainer.args.gradient_accumulation_steps
 
     total_train_batch_size = (
-        trainer.args.train_batch_size * trainer.args.world_size * trainer.args.gradient_accumulation_steps
+        trainer.args.train_batch_size
+        * trainer.args.world_size
+        * trainer.args.gradient_accumulation_steps
     )
     if total_train_batch_size != hyperparameters["train_batch_size"]:
         hyperparameters["total_train_batch_size"] = total_train_batch_size
@@ -909,7 +997,9 @@ def extract_hyperparameters_from_trainer(trainer):
         if trainer.use_cuda_amp:
             hyperparameters["mixed_precision_training"] = "Native AMP"
         elif trainer.use_apex:
-            hyperparameters["mixed_precision_training"] = f"Apex, opt level {trainer.args.fp16_opt_level}"
+            hyperparameters[
+                "mixed_precision_training"
+            ] = f"Apex, opt level {trainer.args.fp16_opt_level}"
 
     if trainer.args.label_smoothing_factor != 0.0:
         hyperparameters["label_smoothing_factor"] = trainer.args.label_smoothing_factor

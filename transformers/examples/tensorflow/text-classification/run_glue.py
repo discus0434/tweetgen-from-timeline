@@ -91,10 +91,15 @@ class DataTrainingArguments:
     """
 
     task_name: str = field(
-        metadata={"help": "The name of the task to train on: " + ", ".join(task_to_keys.keys())},
+        metadata={
+            "help": "The name of the task to train on: "
+            + ", ".join(task_to_keys.keys())
+        },
     )
     predict_file: str = field(
-        metadata={"help": "A file containing user-supplied examples to make predictions for"},
+        metadata={
+            "help": "A file containing user-supplied examples to make predictions for"
+        },
         default=None,
     )
     max_seq_length: int = field(
@@ -107,7 +112,8 @@ class DataTrainingArguments:
         },
     )
     overwrite_cache: bool = field(
-        default=False, metadata={"help": "Overwrite the cached preprocessed datasets or not."}
+        default=False,
+        metadata={"help": "Overwrite the cached preprocessed datasets or not."},
     )
     pad_to_max_length: bool = field(
         default=False,
@@ -149,7 +155,9 @@ class DataTrainingArguments:
     def __post_init__(self):
         self.task_name = self.task_name.lower()
         if self.task_name not in task_to_keys.keys():
-            raise ValueError("Unknown task, you should pick one in " + ",".join(task_to_keys.keys()))
+            raise ValueError(
+                "Unknown task, you should pick one in " + ",".join(task_to_keys.keys())
+            )
 
 
 @dataclass
@@ -159,25 +167,39 @@ class ModelArguments:
     """
 
     model_name_or_path: str = field(
-        metadata={"help": "Path to pretrained model or model identifier from huggingface.co/models"}
+        metadata={
+            "help": "Path to pretrained model or model identifier from huggingface.co/models"
+        }
     )
     config_name: Optional[str] = field(
-        default=None, metadata={"help": "Pretrained config name or path if not the same as model_name"}
+        default=None,
+        metadata={
+            "help": "Pretrained config name or path if not the same as model_name"
+        },
     )
     tokenizer_name: Optional[str] = field(
-        default=None, metadata={"help": "Pretrained tokenizer name or path if not the same as model_name"}
+        default=None,
+        metadata={
+            "help": "Pretrained tokenizer name or path if not the same as model_name"
+        },
     )
     cache_dir: Optional[str] = field(
         default=None,
-        metadata={"help": "Where do you want to store the pretrained models downloaded from huggingface.co"},
+        metadata={
+            "help": "Where do you want to store the pretrained models downloaded from huggingface.co"
+        },
     )
     use_fast_tokenizer: bool = field(
         default=True,
-        metadata={"help": "Whether to use one of the fast tokenizer (backed by the tokenizers library) or not."},
+        metadata={
+            "help": "Whether to use one of the fast tokenizer (backed by the tokenizers library) or not."
+        },
     )
     model_revision: str = field(
         default="main",
-        metadata={"help": "The specific model version to use (can be a branch name, tag name or commit id)."},
+        metadata={
+            "help": "The specific model version to use (can be a branch name, tag name or commit id)."
+        },
     )
     use_auth_token: bool = field(
         default=False,
@@ -199,11 +221,15 @@ def main():
     # or by passing the --help flag to this script.
     # We now keep distinct sets of args, for a cleaner separation of concerns.
 
-    parser = HfArgumentParser((ModelArguments, DataTrainingArguments, TFTrainingArguments))
+    parser = HfArgumentParser(
+        (ModelArguments, DataTrainingArguments, TFTrainingArguments)
+    )
     if len(sys.argv) == 2 and sys.argv[1].endswith(".json"):
         # If we pass only one argument to the script and it's the path to a json file,
         # let's parse it to get our arguments.
-        model_args, data_args, training_args = parser.parse_json_file(json_file=os.path.abspath(sys.argv[1]))
+        model_args, data_args, training_args = parser.parse_json_file(
+            json_file=os.path.abspath(sys.argv[1])
+        )
     else:
         model_args, data_args, training_args = parser.parse_args_into_dataclasses()
 
@@ -211,13 +237,19 @@ def main():
     # information sent is the one passed as arguments along with your Python/PyTorch versions.
     send_example_telemetry("run_glue", model_args, data_args, framework="tensorflow")
 
-    if not (training_args.do_train or training_args.do_eval or training_args.do_predict):
+    if not (
+        training_args.do_train or training_args.do_eval or training_args.do_predict
+    ):
         exit("Must specify at least one of --do_train, --do_eval or --do_predict!")
     # endregion
 
     # region Checkpoints
     checkpoint = None
-    if os.path.isdir(training_args.output_dir) and training_args.do_train and not training_args.overwrite_output_dir:
+    if (
+        os.path.isdir(training_args.output_dir)
+        and training_args.do_train
+        and not training_args.overwrite_output_dir
+    ):
         checkpoint = get_last_checkpoint(training_args.output_dir)
         if checkpoint is None and len(os.listdir(training_args.output_dir)) > 0:
             raise ValueError(
@@ -237,7 +269,9 @@ def main():
         datefmt="%m/%d/%Y %H:%M:%S",
         handlers=[logging.StreamHandler(sys.stdout)],
     )
-    logger.setLevel(logging.INFO if is_main_process(training_args.local_rank) else logging.WARN)
+    logger.setLevel(
+        logging.INFO if is_main_process(training_args.local_rank) else logging.WARN
+    )
 
     # Set the verbosity to info of the Transformers logger (on main process only):
     if is_main_process(training_args.local_rank):
@@ -279,13 +313,19 @@ def main():
 
         if data_args.predict_file.endswith(".csv"):
             # Loading a dataset from local csv files
-            user_dataset = load_dataset("csv", data_files=data_files, cache_dir=model_args.cache_dir)
+            user_dataset = load_dataset(
+                "csv", data_files=data_files, cache_dir=model_args.cache_dir
+            )
         else:
             # Loading a dataset from local json files
-            user_dataset = load_dataset("json", data_files=data_files, cache_dir=model_args.cache_dir)
+            user_dataset = load_dataset(
+                "json", data_files=data_files, cache_dir=model_args.cache_dir
+            )
         needed_keys = task_to_keys[data_args.task_name]
         for key in needed_keys:
-            assert key in user_dataset["data"].features, f"Your supplied predict_file is missing the {key} key!"
+            assert (
+                key in user_dataset["data"].features
+            ), f"Your supplied predict_file is missing the {key} key!"
         datasets["user_data"] = user_dataset["data"]
     # endregion
 
@@ -294,7 +334,9 @@ def main():
     # In distributed training, the .from_pretrained methods guarantee that only one local process can concurrently
     # download model & vocab.
     config = AutoConfig.from_pretrained(
-        model_args.config_name if model_args.config_name else model_args.model_name_or_path,
+        model_args.config_name
+        if model_args.config_name
+        else model_args.model_name_or_path,
         num_labels=num_labels,
         finetuning_task=data_args.task_name,
         cache_dir=model_args.cache_dir,
@@ -302,7 +344,9 @@ def main():
         use_auth_token=True if model_args.use_auth_token else None,
     )
     tokenizer = AutoTokenizer.from_pretrained(
-        model_args.tokenizer_name if model_args.tokenizer_name else model_args.model_name_or_path,
+        model_args.tokenizer_name
+        if model_args.tokenizer_name
+        else model_args.model_name_or_path,
         cache_dir=model_args.cache_dir,
         use_fast=model_args.use_fast_tokenizer,
         revision=model_args.model_revision,
@@ -312,7 +356,9 @@ def main():
 
     # region Dataset preprocessing
     sentence1_key, sentence2_key = task_to_keys[data_args.task_name]
-    non_label_column_names = [name for name in datasets["train"].column_names if name != "label"]
+    non_label_column_names = [
+        name for name in datasets["train"].column_names if name != "label"
+    ]
 
     # Padding strategy
     if data_args.pad_to_max_length:
@@ -323,11 +369,16 @@ def main():
 
     # Some models have set the order of the labels to use, so let's make sure we do use it.
     label_to_id = None
-    if config.label2id != PretrainedConfig(num_labels=num_labels).label2id and not is_regression:
+    if (
+        config.label2id != PretrainedConfig(num_labels=num_labels).label2id
+        and not is_regression
+    ):
         # Some have all caps in their config, some don't.
         label_name_to_id = {k.lower(): v for k, v in config.label2id.items()}
         if list(sorted(label_name_to_id.keys())) == list(sorted(label_list)):
-            label_to_id = {i: int(label_name_to_id[label_list[i]]) for i in range(num_labels)}
+            label_to_id = {
+                i: int(label_name_to_id[label_list[i]]) for i in range(num_labels)
+            }
         else:
             logger.warning(
                 "Your model seems to have been trained with labels, but they don't match the dataset: ",
@@ -352,13 +403,21 @@ def main():
     def preprocess_function(examples):
         # Tokenize the texts
         args = (
-            (examples[sentence1_key],) if sentence2_key is None else (examples[sentence1_key], examples[sentence2_key])
+            (examples[sentence1_key],)
+            if sentence2_key is None
+            else (examples[sentence1_key], examples[sentence2_key])
         )
-        result = tokenizer(*args, padding=padding, max_length=max_seq_length, truncation=True)
+        result = tokenizer(
+            *args, padding=padding, max_length=max_seq_length, truncation=True
+        )
 
         return result
 
-    datasets = datasets.map(preprocess_function, batched=True, load_from_cache_file=not data_args.overwrite_cache)
+    datasets = datasets.map(
+        preprocess_function,
+        batched=True,
+        load_from_cache_file=not data_args.overwrite_cache,
+    )
 
     if data_args.pad_to_max_length:
         data_collator = DefaultDataCollator(return_tensors="tf")
@@ -425,11 +484,15 @@ def main():
         }
         for key in datasets.keys():
             if key == "train" or key.startswith("validation"):
-                assert "label" in datasets[key].features, f"Missing labels from {key} data!"
+                assert (
+                    "label" in datasets[key].features
+                ), f"Missing labels from {key} data!"
             if key == "train":
                 shuffle = True
                 batch_size = training_args.per_device_train_batch_size
-                drop_remainder = True  # Saves us worrying about scaling gradients for the last batch
+                drop_remainder = (
+                    True  # Saves us worrying about scaling gradients for the last batch
+                )
             else:
                 shuffle = False
                 batch_size = training_args.per_device_eval_batch_size
@@ -439,7 +502,11 @@ def main():
             if samples_limit is not None:
                 dataset = dataset.select(range(samples_limit))
             data = dataset.to_tf_dataset(
-                columns=[col for col in dataset.column_names if col not in set(non_label_column_names + ["label"])],
+                columns=[
+                    col
+                    for col in dataset.column_names
+                    if col not in set(non_label_column_names + ["label"])
+                ],
                 shuffle=shuffle,
                 batch_size=batch_size,
                 collate_fn=data_collator,
@@ -477,8 +544,14 @@ def main():
             # Loop to handle MNLI double evaluation (matched, mis-matched)
             if data_args.task_name == "mnli":
                 tasks = ["mnli", "mnli-mm"]
-                tf_datasets = [tf_data["validation_matched"], tf_data["validation_mismatched"]]
-                raw_datasets = [datasets["validation_matched"], datasets["validation_mismatched"]]
+                tf_datasets = [
+                    tf_data["validation_matched"],
+                    tf_data["validation_mismatched"],
+                ]
+                raw_datasets = [
+                    datasets["validation_matched"],
+                    datasets["validation_mismatched"],
+                ]
             else:
                 tasks = [data_args.task_name]
                 tf_datasets = [tf_data["validation"]]
@@ -503,8 +576,12 @@ def main():
             if training_args.do_predict:
                 if data_args.task_name == "mnli":
                     tasks.extend(["mnli", "mnli-mm"])
-                    tf_datasets.extend([tf_data["test_matched"], tf_data["test_mismatched"]])
-                    raw_datasets.extend([datasets["test_matched"], datasets["test_mismatched"]])
+                    tf_datasets.extend(
+                        [tf_data["test_matched"], tf_data["test_mismatched"]]
+                    )
+                    raw_datasets.extend(
+                        [datasets["test_matched"], datasets["test_mismatched"]]
+                    )
                 else:
                     tasks.append(data_args.task_name)
                     tf_datasets.append(tf_data["test"])
@@ -517,7 +594,9 @@ def main():
             for raw_dataset, tf_dataset, task in zip(raw_datasets, tf_datasets, tasks):
                 test_predictions = model.predict(tf_dataset)
                 if "label" in raw_dataset:
-                    test_metrics = compute_metrics(test_predictions, raw_dataset["label"])
+                    test_metrics = compute_metrics(
+                        test_predictions, raw_dataset["label"]
+                    )
                     print(f"Test metrics ({task}):")
                     print(test_metrics)
 
@@ -526,7 +605,9 @@ def main():
                 else:
                     predictions_to_write = np.argmax(test_predictions["logits"], axis=1)
 
-                output_predict_file = os.path.join(training_args.output_dir, f"predict_results_{task}.txt")
+                output_predict_file = os.path.join(
+                    training_args.output_dir, f"predict_results_{task}.txt"
+                )
                 with open(output_predict_file, "w") as writer:
                     logger.info(f"***** Writing prediction results for {task} *****")
                     writer.write("index\tprediction\n")

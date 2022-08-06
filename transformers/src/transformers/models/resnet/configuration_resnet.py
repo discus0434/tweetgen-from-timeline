@@ -83,11 +83,13 @@ class ResNetConfig(PretrainedConfig):
         layer_type="bottleneck",
         hidden_act="relu",
         downsample_in_first_stage=False,
-        **kwargs
+        **kwargs,
     ):
         super().__init__(**kwargs)
         if layer_type not in self.layer_types:
-            raise ValueError(f"layer_type={layer_type} is not one of {','.join(self.layer_types)}")
+            raise ValueError(
+                f"layer_type={layer_type} is not one of {','.join(self.layer_types)}"
+            )
         self.num_channels = num_channels
         self.embedding_size = embedding_size
         self.hidden_sizes = hidden_sizes

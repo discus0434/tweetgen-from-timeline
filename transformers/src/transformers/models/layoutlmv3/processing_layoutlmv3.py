@@ -18,7 +18,13 @@ Processor class for LayoutLMv3.
 from typing import List, Optional, Union
 
 from ...processing_utils import ProcessorMixin
-from ...tokenization_utils_base import BatchEncoding, PaddingStrategy, PreTokenizedInput, TextInput, TruncationStrategy
+from ...tokenization_utils_base import (
+    BatchEncoding,
+    PaddingStrategy,
+    PreTokenizedInput,
+    TextInput,
+    TruncationStrategy,
+)
 from ...utils import TensorType
 
 
@@ -47,7 +53,9 @@ class LayoutLMv3Processor(ProcessorMixin):
     def __call__(
         self,
         images,
-        text: Union[TextInput, PreTokenizedInput, List[TextInput], List[PreTokenizedInput]] = None,
+        text: Union[
+            TextInput, PreTokenizedInput, List[TextInput], List[PreTokenizedInput]
+        ] = None,
         text_pair: Optional[Union[PreTokenizedInput, List[PreTokenizedInput]]] = None,
         boxes: Union[List[List[int]], List[List[List[int]]]] = None,
         word_labels: Optional[Union[List[int], List[List[int]]]] = None,
@@ -65,7 +73,7 @@ class LayoutLMv3Processor(ProcessorMixin):
         return_length: bool = False,
         verbose: bool = True,
         return_tensors: Optional[Union[str, TensorType]] = None,
-        **kwargs
+        **kwargs,
     ) -> BatchEncoding:
         """
         This method first forwards the `images` argument to [`~LayoutLMv3FeatureExtractor.__call__`]. In case
@@ -96,7 +104,9 @@ class LayoutLMv3Processor(ProcessorMixin):
         # second, apply the tokenizer
         if text is not None and self.feature_extractor.apply_ocr and text_pair is None:
             if isinstance(text, str):
-                text = [text]  # add batch dimension (as the feature extractor always adds a batch dimension)
+                text = [
+                    text
+                ]  # add batch dimension (as the feature extractor always adds a batch dimension)
             text_pair = features["words"]
 
         encoded_inputs = self.tokenizer(
@@ -124,7 +134,9 @@ class LayoutLMv3Processor(ProcessorMixin):
         # add pixel values
         images = features.pop("pixel_values")
         if return_overflowing_tokens is True:
-            images = self.get_overflowing_images(images, encoded_inputs["overflow_to_sample_mapping"])
+            images = self.get_overflowing_images(
+                images, encoded_inputs["overflow_to_sample_mapping"]
+            )
         encoded_inputs["pixel_values"] = images
 
         return encoded_inputs

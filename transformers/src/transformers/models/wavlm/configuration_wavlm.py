@@ -251,9 +251,14 @@ class WavLMConfig(PretrainedConfig):
         adapter_stride=2,
         num_adapter_layers=3,
         output_hidden_size=None,
-        **kwargs
+        **kwargs,
     ):
-        super().__init__(**kwargs, pad_token_id=pad_token_id, bos_token_id=bos_token_id, eos_token_id=eos_token_id)
+        super().__init__(
+            **kwargs,
+            pad_token_id=pad_token_id,
+            bos_token_id=bos_token_id,
+            eos_token_id=eos_token_id,
+        )
         self.hidden_size = hidden_size
         self.feat_extract_norm = feat_extract_norm
         self.feat_extract_activation = feat_extract_activation

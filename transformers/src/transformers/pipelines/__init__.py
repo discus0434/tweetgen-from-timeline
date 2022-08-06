@@ -29,11 +29,20 @@ from ..configuration_utils import PretrainedConfig
 from ..dynamic_module_utils import get_class_from_dynamic_module
 from ..feature_extraction_utils import PreTrainedFeatureExtractor
 from ..models.auto.configuration_auto import AutoConfig
-from ..models.auto.feature_extraction_auto import FEATURE_EXTRACTOR_MAPPING, AutoFeatureExtractor
+from ..models.auto.feature_extraction_auto import (
+    FEATURE_EXTRACTOR_MAPPING,
+    AutoFeatureExtractor,
+)
 from ..models.auto.tokenization_auto import TOKENIZER_MAPPING, AutoTokenizer
 from ..tokenization_utils import PreTrainedTokenizer
 from ..tokenization_utils_fast import PreTrainedTokenizerFast
-from ..utils import HUGGINGFACE_CO_RESOLVE_ENDPOINT, http_get, is_tf_available, is_torch_available, logging
+from ..utils import (
+    HUGGINGFACE_CO_RESOLVE_ENDPOINT,
+    http_get,
+    is_tf_available,
+    is_torch_available,
+    logging,
+)
 from .audio_classification import AudioClassificationPipeline
 from .automatic_speech_recognition import AutomaticSpeechRecognitionPipeline
 from .base import (
@@ -54,9 +63,19 @@ from .fill_mask import FillMaskPipeline
 from .image_classification import ImageClassificationPipeline
 from .image_segmentation import ImageSegmentationPipeline
 from .object_detection import ObjectDetectionPipeline
-from .question_answering import QuestionAnsweringArgumentHandler, QuestionAnsweringPipeline
-from .table_question_answering import TableQuestionAnsweringArgumentHandler, TableQuestionAnsweringPipeline
-from .text2text_generation import SummarizationPipeline, Text2TextGenerationPipeline, TranslationPipeline
+from .question_answering import (
+    QuestionAnsweringArgumentHandler,
+    QuestionAnsweringPipeline,
+)
+from .table_question_answering import (
+    TableQuestionAnsweringArgumentHandler,
+    TableQuestionAnsweringPipeline,
+)
+from .text2text_generation import (
+    SummarizationPipeline,
+    Text2TextGenerationPipeline,
+    TranslationPipeline,
+)
 from .text_classification import TextClassificationPipeline
 from .text_generation import TextGenerationPipeline
 from .token_classification import (
@@ -66,7 +85,10 @@ from .token_classification import (
     TokenClassificationPipeline,
 )
 from .visual_question_answering import VisualQuestionAnsweringPipeline
-from .zero_shot_classification import ZeroShotClassificationArgumentHandler, ZeroShotClassificationPipeline
+from .zero_shot_classification import (
+    ZeroShotClassificationArgumentHandler,
+    ZeroShotClassificationPipeline,
+)
 from .zero_shot_image_classification import ZeroShotImageClassificationPipeline
 
 
@@ -142,7 +164,9 @@ SUPPORTED_TASKS = {
     "automatic-speech-recognition": {
         "impl": AutomaticSpeechRecognitionPipeline,
         "tf": (),
-        "pt": (AutoModelForCTC, AutoModelForSpeechSeq2Seq) if is_torch_available() else (),
+        "pt": (AutoModelForCTC, AutoModelForSpeechSeq2Seq)
+        if is_torch_available()
+        else (),
         "default": {"model": {"pt": ("facebook/wav2vec2-base-960h", "55bb623")}},
         "type": "multimodal",
     },
@@ -150,7 +174,12 @@ SUPPORTED_TASKS = {
         "impl": FeatureExtractionPipeline,
         "tf": (TFAutoModel,) if is_tf_available() else (),
         "pt": (AutoModel,) if is_torch_available() else (),
-        "default": {"model": {"pt": ("distilbert-base-cased", "935ac13"), "tf": ("distilbert-base-cased", "935ac13")}},
+        "default": {
+            "model": {
+                "pt": ("distilbert-base-cased", "935ac13"),
+                "tf": ("distilbert-base-cased", "935ac13"),
+            }
+        },
         "type": "multimodal",
     },
     "text-classification": {
@@ -214,14 +243,24 @@ SUPPORTED_TASKS = {
         "impl": FillMaskPipeline,
         "tf": (TFAutoModelForMaskedLM,) if is_tf_available() else (),
         "pt": (AutoModelForMaskedLM,) if is_torch_available() else (),
-        "default": {"model": {"pt": ("distilroberta-base", "ec58a5b"), "tf": ("distilroberta-base", "ec58a5b")}},
+        "default": {
+            "model": {
+                "pt": ("distilroberta-base", "ec58a5b"),
+                "tf": ("distilroberta-base", "ec58a5b"),
+            }
+        },
         "type": "text",
     },
     "summarization": {
         "impl": SummarizationPipeline,
         "tf": (TFAutoModelForSeq2SeqLM,) if is_tf_available() else (),
         "pt": (AutoModelForSeq2SeqLM,) if is_torch_available() else (),
-        "default": {"model": {"pt": ("sshleifer/distilbart-cnn-12-6", "a4f8f3e"), "tf": ("t5-small", "d769bba")}},
+        "default": {
+            "model": {
+                "pt": ("sshleifer/distilbart-cnn-12-6", "a4f8f3e"),
+                "tf": ("t5-small", "d769bba"),
+            }
+        },
         "type": "text",
     },
     # This task is a special case as it's parametrized by SRC, TGT languages.
@@ -230,9 +269,15 @@ SUPPORTED_TASKS = {
         "tf": (TFAutoModelForSeq2SeqLM,) if is_tf_available() else (),
         "pt": (AutoModelForSeq2SeqLM,) if is_torch_available() else (),
         "default": {
-            ("en", "fr"): {"model": {"pt": ("t5-base", "686f1db"), "tf": ("t5-base", "686f1db")}},
-            ("en", "de"): {"model": {"pt": ("t5-base", "686f1db"), "tf": ("t5-base", "686f1db")}},
-            ("en", "ro"): {"model": {"pt": ("t5-base", "686f1db"), "tf": ("t5-base", "686f1db")}},
+            ("en", "fr"): {
+                "model": {"pt": ("t5-base", "686f1db"), "tf": ("t5-base", "686f1db")}
+            },
+            ("en", "de"): {
+                "model": {"pt": ("t5-base", "686f1db"), "tf": ("t5-base", "686f1db")}
+            },
+            ("en", "ro"): {
+                "model": {"pt": ("t5-base", "686f1db"), "tf": ("t5-base", "686f1db")}
+            },
         },
         "type": "text",
     },
@@ -240,7 +285,9 @@ SUPPORTED_TASKS = {
         "impl": Text2TextGenerationPipeline,
         "tf": (TFAutoModelForSeq2SeqLM,) if is_tf_available() else (),
         "pt": (AutoModelForSeq2SeqLM,) if is_torch_available() else (),
-        "default": {"model": {"pt": ("t5-base", "686f1db"), "tf": ("t5-base", "686f1db")}},
+        "default": {
+            "model": {"pt": ("t5-base", "686f1db"), "tf": ("t5-base", "686f1db")}
+        },
         "type": "text",
     },
     "text-generation": {
@@ -255,8 +302,14 @@ SUPPORTED_TASKS = {
         "tf": (TFAutoModelForSequenceClassification,) if is_tf_available() else (),
         "pt": (AutoModelForSequenceClassification,) if is_torch_available() else (),
         "default": {
-            "model": {"pt": ("facebook/bart-large-mnli", "c626438"), "tf": ("roberta-large-mnli", "130fb28")},
-            "config": {"pt": ("facebook/bart-large-mnli", "c626438"), "tf": ("roberta-large-mnli", "130fb28")},
+            "model": {
+                "pt": ("facebook/bart-large-mnli", "c626438"),
+                "tf": ("roberta-large-mnli", "130fb28"),
+            },
+            "config": {
+                "pt": ("facebook/bart-large-mnli", "c626438"),
+                "tf": ("roberta-large-mnli", "130fb28"),
+            },
         },
         "type": "text",
     },
@@ -274,10 +327,17 @@ SUPPORTED_TASKS = {
     },
     "conversational": {
         "impl": ConversationalPipeline,
-        "tf": (TFAutoModelForSeq2SeqLM, TFAutoModelForCausalLM) if is_tf_available() else (),
-        "pt": (AutoModelForSeq2SeqLM, AutoModelForCausalLM) if is_torch_available() else (),
+        "tf": (TFAutoModelForSeq2SeqLM, TFAutoModelForCausalLM)
+        if is_tf_available()
+        else (),
+        "pt": (AutoModelForSeq2SeqLM, AutoModelForCausalLM)
+        if is_torch_available()
+        else (),
         "default": {
-            "model": {"pt": ("microsoft/DialoGPT-medium", "8bada3b"), "tf": ("microsoft/DialoGPT-medium", "8bada3b")}
+            "model": {
+                "pt": ("microsoft/DialoGPT-medium", "8bada3b"),
+                "tf": ("microsoft/DialoGPT-medium", "8bada3b"),
+            }
         },
         "type": "text",
     },
@@ -296,7 +356,9 @@ SUPPORTED_TASKS = {
     "image-segmentation": {
         "impl": ImageSegmentationPipeline,
         "tf": (),
-        "pt": (AutoModelForImageSegmentation, AutoModelForSemanticSegmentation) if is_torch_available() else (),
+        "pt": (AutoModelForImageSegmentation, AutoModelForSemanticSegmentation)
+        if is_torch_available()
+        else (),
         "default": {"model": {"pt": ("facebook/detr-resnet-50-panoptic", "fc15262")}},
         "type": "image",
     },
@@ -322,9 +384,13 @@ for task, values in SUPPORTED_TASKS.items():
     elif values["type"] in {"audio", "image"}:
         NO_TOKENIZER_TASKS.add(task)
     elif values["type"] != "multimodal":
-        raise ValueError(f"SUPPORTED_TASK {task} contains invalid type {values['type']}")
+        raise ValueError(
+            f"SUPPORTED_TASK {task} contains invalid type {values['type']}"
+        )
 
-PIPELINE_REGISTRY = PipelineRegistry(supported_tasks=SUPPORTED_TASKS, task_aliases=TASK_ALIASES)
+PIPELINE_REGISTRY = PipelineRegistry(
+    supported_tasks=SUPPORTED_TASKS, task_aliases=TASK_ALIASES
+)
 
 
 def get_supported_tasks() -> List[str]:
@@ -346,13 +412,17 @@ def get_task(model: str, use_auth_token: Optional[str] = None) -> str:
         body = tmp.read()
         data = json.loads(body)
     except Exception as e:
-        raise RuntimeError(f"Instantiating a pipeline without a task set raised an error: {e}")
+        raise RuntimeError(
+            f"Instantiating a pipeline without a task set raised an error: {e}"
+        )
     if "pipeline_tag" not in data:
         raise RuntimeError(
             f"The model {model} does not seem to have a correct `pipeline_tag` set to infer the task automatically"
         )
     if data.get("library_name", "transformers") != "transformers":
-        raise RuntimeError(f"This model is meant to be used with {data['library_name']} not with transformers")
+        raise RuntimeError(
+            f"This model is meant to be used with {data['library_name']} not with transformers"
+        )
     task = data["pipeline_tag"]
     return task
 
@@ -398,7 +468,9 @@ def clean_custom_task(task_info):
     import transformers
 
     if "impl" not in task_info:
-        raise RuntimeError("This model introduces a custom pipeline without specifying its implementation.")
+        raise RuntimeError(
+            "This model introduces a custom pipeline without specifying its implementation."
+        )
     pt_class_names = task_info.get("pt", ())
     if isinstance(pt_class_names, str):
         pt_class_names = [pt_class_names]
@@ -414,7 +486,9 @@ def pipeline(
     task: str = None,
     model: Optional = None,
     config: Optional[Union[str, PretrainedConfig]] = None,
-    tokenizer: Optional[Union[str, PreTrainedTokenizer, PreTrainedTokenizerFast]] = None,
+    tokenizer: Optional[
+        Union[str, PreTrainedTokenizer, PreTrainedTokenizerFast]
+    ] = None,
     feature_extractor: Optional[Union[str, PreTrainedFeatureExtractor]] = None,
     framework: Optional[str] = None,
     revision: Optional[str] = None,
@@ -425,7 +499,7 @@ def pipeline(
     trust_remote_code: Optional[bool] = None,
     model_kwargs: Dict[str, Any] = None,
     pipeline_class: Optional[Any] = None,
-    **kwargs
+    **kwargs,
 ) -> Pipeline:
     """
     Utility factory method to build a [`Pipeline`].
@@ -555,7 +629,11 @@ def pipeline(
     # Make sure we only pass use_auth_token once as a kwarg (it used to be possible to pass it in model_kwargs,
     # this is to keep BC).
     use_auth_token = model_kwargs.pop("use_auth_token", use_auth_token)
-    hub_kwargs = {"revision": revision, "use_auth_token": use_auth_token, "trust_remote_code": trust_remote_code}
+    hub_kwargs = {
+        "revision": revision,
+        "use_auth_token": use_auth_token,
+        "trust_remote_code": trust_remote_code,
+    }
 
     if task is None and model is None:
         raise RuntimeError(
@@ -580,9 +658,13 @@ def pipeline(
     # Config is the primordial information item.
     # Instantiate config if needed
     if isinstance(config, str):
-        config = AutoConfig.from_pretrained(config, _from_pipeline=task, **hub_kwargs, **model_kwargs)
+        config = AutoConfig.from_pretrained(
+            config, _from_pipeline=task, **hub_kwargs, **model_kwargs
+        )
     elif config is None and isinstance(model, str):
-        config = AutoConfig.from_pretrained(model, _from_pipeline=task, **hub_kwargs, **model_kwargs)
+        config = AutoConfig.from_pretrained(
+            model, _from_pipeline=task, **hub_kwargs, **model_kwargs
+        )
 
     custom_tasks = {}
     if config is not None and len(getattr(config, "custom_pipelines", {})) > 0:
@@ -618,7 +700,11 @@ def pipeline(
             class_ref = targeted_task["impl"]
             module_file, class_name = class_ref.split(".")
             pipeline_class = get_class_from_dynamic_module(
-                model, module_file + ".py", class_name, revision=revision, use_auth_token=use_auth_token
+                model,
+                module_file + ".py",
+                class_name,
+                revision=revision,
+                use_auth_token=use_auth_token,
             )
     else:
         normalized_task, targeted_task, task_options = check_task(task)
@@ -628,7 +714,9 @@ def pipeline(
     # Use default model/config/tokenizer for the task if no model is provided
     if model is None:
         # At that point framework might still be undetermined
-        model, default_revision = get_default_model_and_revision(targeted_task, framework, task_options)
+        model, default_revision = get_default_model_and_revision(
+            targeted_task, framework, task_options
+        )
         revision = revision if revision is not None else default_revision
         logger.warning(
             f"No model was supplied, defaulted to {model} and revision"
@@ -636,7 +724,9 @@ def pipeline(
             "Using a pipeline without specifying a model name and revision in production is not recommended."
         )
         if config is None and isinstance(model, str):
-            config = AutoConfig.from_pretrained(model, _from_pipeline=task, **hub_kwargs, **model_kwargs)
+            config = AutoConfig.from_pretrained(
+                model, _from_pipeline=task, **hub_kwargs, **model_kwargs
+            )
 
     if device_map is not None:
         if "device_map" in model_kwargs:
@@ -671,8 +761,13 @@ def pipeline(
 
     model_config = model.config
 
-    load_tokenizer = type(model_config) in TOKENIZER_MAPPING or model_config.tokenizer_class is not None
-    load_feature_extractor = type(model_config) in FEATURE_EXTRACTOR_MAPPING or feature_extractor is not None
+    load_tokenizer = (
+        type(model_config) in TOKENIZER_MAPPING
+        or model_config.tokenizer_class is not None
+    )
+    load_feature_extractor = (
+        type(model_config) in FEATURE_EXTRACTOR_MAPPING or feature_extractor is not None
+    )
 
     if (
         tokenizer is None
@@ -733,7 +828,11 @@ def pipeline(
                 tokenizer_kwargs = model_kwargs
 
             tokenizer = AutoTokenizer.from_pretrained(
-                tokenizer_identifier, use_fast=use_fast, _from_pipeline=task, **hub_kwargs, **tokenizer_kwargs
+                tokenizer_identifier,
+                use_fast=use_fast,
+                _from_pipeline=task,
+                **hub_kwargs,
+                **tokenizer_kwargs,
             )
 
     if load_feature_extractor:
@@ -770,11 +869,16 @@ def pipeline(
                         decoder = BeamSearchDecoderCTC.load_from_dir(model_name)
                     else:
                         language_model_glob = os.path.join(
-                            BeamSearchDecoderCTC._LANGUAGE_MODEL_SERIALIZED_DIRECTORY, "*"
+                            BeamSearchDecoderCTC._LANGUAGE_MODEL_SERIALIZED_DIRECTORY,
+                            "*",
                         )
-                        alphabet_filename = BeamSearchDecoderCTC._ALPHABET_SERIALIZED_FILENAME
+                        alphabet_filename = (
+                            BeamSearchDecoderCTC._ALPHABET_SERIALIZED_FILENAME
+                        )
                         allow_regex = [language_model_glob, alphabet_filename]
-                        decoder = BeamSearchDecoderCTC.load_from_hf_hub(model_name, allow_regex=allow_regex)
+                        decoder = BeamSearchDecoderCTC.load_from_hf_hub(
+                            model_name, allow_regex=allow_regex
+                        )
 
                     kwargs["decoder"] = decoder
                 except ImportError as e:

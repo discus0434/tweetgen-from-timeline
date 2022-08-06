@@ -178,7 +178,9 @@ _deps = [
 # packaging: "packaging"
 #
 # some of the values are versioned whereas others aren't.
-deps = {b: a for a, b in (re.findall(r"^(([^!=<>~]+)(?:[!=<>~].*)?$)", x)[0] for x in _deps)}
+deps = {
+    b: a for a, b in (re.findall(r"^(([^!=<>~]+)(?:[!=<>~].*)?$)", x)[0] for x in _deps)
+}
 
 # since we save this data in src/transformers/dependency_versions_table.py it can be easily accessed from
 # anywhere. If you need to quickly access the data from this table in a shell, you can do so easily with:
@@ -210,7 +212,11 @@ class DepsTableUpdateCommand(Command):
     description = "build runtime dependency table"
     user_options = [
         # format: (long option, short option, description).
-        ("dep-table-update", None, "updates src/transformers/dependency_versions_table.py"),
+        (
+            "dep-table-update",
+            None,
+            "updates src/transformers/dependency_versions_table.py",
+        ),
     ]
 
     def initialize_options(self):
@@ -241,8 +247,12 @@ extras = {}
 extras["ja"] = deps_list("fugashi", "ipadic", "unidic_lite", "unidic")
 extras["sklearn"] = deps_list("scikit-learn")
 
-extras["tf"] = deps_list("tensorflow", "onnxconverter-common", "tf2onnx", "tensorflow-text")
-extras["tf-cpu"] = deps_list("tensorflow-cpu", "onnxconverter-common", "tf2onnx", "tensorflow-text")
+extras["tf"] = deps_list(
+    "tensorflow", "onnxconverter-common", "tf2onnx", "tensorflow-text"
+)
+extras["tf-cpu"] = deps_list(
+    "tensorflow-cpu", "onnxconverter-common", "tf2onnx", "tensorflow-text"
+)
 
 extras["torch"] = deps_list("torch")
 extras["accelerate"] = deps_list("accelerate")
@@ -270,7 +280,9 @@ extras["sigopt"] = deps_list("sigopt")
 extras["integrations"] = extras["optuna"] + extras["ray"] + extras["sigopt"]
 
 extras["serving"] = deps_list("pydantic", "uvicorn", "fastapi", "starlette")
-extras["audio"] = deps_list("librosa", "pyctcdecode", "phonemizer", "resampy")  # resampy can be removed once unpinned.
+extras["audio"] = deps_list(
+    "librosa", "pyctcdecode", "phonemizer", "resampy"
+)  # resampy can be removed once unpinned.
 # `pip install ".[speech]"` is deprecated and `pip install ".[torch-speech]"` should be used instead
 extras["speech"] = deps_list("torchaudio") + extras["audio"]
 extras["torch-speech"] = deps_list("torchaudio") + extras["audio"]
@@ -387,7 +399,8 @@ extras["torchhub"] = deps_list(
 
 # when modifying the following list, make sure to update src/transformers/dependency_versions_check.py
 install_requires = [
-    deps["importlib_metadata"] + ";python_version<'3.8'",  # importlib_metadata for Python versions that don't have it
+    deps["importlib_metadata"]
+    + ";python_version<'3.8'",  # importlib_metadata for Python versions that don't have it
     deps["filelock"],  # filesystem locks, e.g., to prevent parallel downloads
     deps["huggingface-hub"],
     deps["numpy"],
@@ -414,7 +427,11 @@ setup(
     packages=find_packages("src"),
     zip_safe=False,
     extras_require=extras,
-    entry_points={"console_scripts": ["transformers-cli=transformers.commands.transformers_cli:main"]},
+    entry_points={
+        "console_scripts": [
+            "transformers-cli=transformers.commands.transformers_cli:main"
+        ]
+    },
     python_requires=">=3.7.0",
     install_requires=install_requires,
     classifiers=[

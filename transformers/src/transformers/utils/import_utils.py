@@ -84,7 +84,9 @@ if USE_TF in ENV_VARS_TRUE_AND_AUTO_VALUES and USE_TORCH not in ENV_VARS_TRUE_VA
         _tf_available = _tf_version is not None
     if _tf_available:
         if version.parse(_tf_version) < version.parse("2"):
-            logger.info(f"TensorFlow found but with version {_tf_version}. Transformers requires version 2 minimum.")
+            logger.info(
+                f"TensorFlow found but with version {_tf_version}. Transformers requires version 2 minimum."
+            )
             _tf_available = False
         else:
             logger.info(f"TensorFlow version {_tf_version} available.")
@@ -94,12 +96,17 @@ else:
 
 
 if USE_JAX in ENV_VARS_TRUE_AND_AUTO_VALUES:
-    _flax_available = importlib.util.find_spec("jax") is not None and importlib.util.find_spec("flax") is not None
+    _flax_available = (
+        importlib.util.find_spec("jax") is not None
+        and importlib.util.find_spec("flax") is not None
+    )
     if _flax_available:
         try:
             _jax_version = importlib_metadata.version("jax")
             _flax_version = importlib_metadata.version("flax")
-            logger.info(f"JAX version {_jax_version}, Flax version {_flax_version} available.")
+            logger.info(
+                f"JAX version {_jax_version}, Flax version {_flax_version} available."
+            )
         except importlib_metadata.PackageNotFoundError:
             _flax_available = False
 else:
@@ -184,10 +191,14 @@ except importlib_metadata.PackageNotFoundError:
     _scatter_available = False
 
 
-_pytorch_quantization_available = importlib.util.find_spec("pytorch_quantization") is not None
+_pytorch_quantization_available = (
+    importlib.util.find_spec("pytorch_quantization") is not None
+)
 try:
     _pytorch_quantization_version = importlib_metadata.version("pytorch_quantization")
-    logger.debug(f"Successfully imported pytorch-quantization version {_pytorch_quantization_version}")
+    logger.debug(
+        f"Successfully imported pytorch-quantization version {_pytorch_quantization_version}"
+    )
 except importlib_metadata.PackageNotFoundError:
     _pytorch_quantization_available = False
 
@@ -200,10 +211,16 @@ except importlib_metadata.PackageNotFoundError:
     _soundfile_available = False
 
 
-_tensorflow_probability_available = importlib.util.find_spec("tensorflow_probability") is not None
+_tensorflow_probability_available = (
+    importlib.util.find_spec("tensorflow_probability") is not None
+)
 try:
-    _tensorflow_probability_version = importlib_metadata.version("tensorflow_probability")
-    logger.debug(f"Successfully imported tensorflow-probability version {_tensorflow_probability_version}")
+    _tensorflow_probability_version = importlib_metadata.version(
+        "tensorflow_probability"
+    )
+    logger.debug(
+        f"Successfully imported tensorflow-probability version {_tensorflow_probability_version}"
+    )
 except importlib_metadata.PackageNotFoundError:
     _tensorflow_probability_available = False
 
@@ -300,7 +317,9 @@ def is_torch_bf16_gpu_available():
     # 4. torch.autocast exists
     # XXX: one problem here is that it may give invalid results on mixed gpus setup, so it's
     # really only correct for the 0th gpu (or currently set default device if different from 0)
-    if version.parse(version.parse(torch.__version__).base_version) < version.parse("1.10"):
+    if version.parse(version.parse(torch.__version__).base_version) < version.parse(
+        "1.10"
+    ):
         return False
 
     if torch.cuda.is_available() and torch.version.cuda is not None:
@@ -322,7 +341,9 @@ def is_torch_bf16_cpu_available():
 
     import torch
 
-    if version.parse(version.parse(torch.__version__).base_version) < version.parse("1.10"):
+    if version.parse(version.parse(torch.__version__).base_version) < version.parse(
+        "1.10"
+    ):
         return False
 
     try:
@@ -357,7 +378,9 @@ def is_torch_tf32_available():
         return False
     if int(torch.version.cuda.split(".")[0]) < 11:
         return False
-    if version.parse(version.parse(torch.__version__).base_version) < version.parse("1.7"):
+    if version.parse(version.parse(torch.__version__).base_version) < version.parse(
+        "1.7"
+    ):
         return False
 
     return True
@@ -372,7 +395,9 @@ if _torch_available:
         TORCH_FX_REQUIRED_VERSION.minor,
     )
 
-    _torch_onnx_dict_inputs_support_available = torch_version >= TORCH_ONNX_DICT_INPUTS_MINIMUM_VERSION
+    _torch_onnx_dict_inputs_support_available = (
+        torch_version >= TORCH_ONNX_DICT_INPUTS_MINIMUM_VERSION
+    )
 
 
 def is_torch_fx_available():
@@ -465,9 +490,16 @@ def is_apex_available():
 
 def is_ipex_available():
     def get_major_and_minor_from_version(full_version):
-        return str(version.parse(full_version).major) + "." + str(version.parse(full_version).minor)
+        return (
+            str(version.parse(full_version).major)
+            + "."
+            + str(version.parse(full_version).minor)
+        )
 
-    if not is_torch_available() or importlib.util.find_spec("intel_extension_for_pytorch") is None:
+    if (
+        not is_torch_available()
+        or importlib.util.find_spec("intel_extension_for_pytorch") is None
+    ):
         return False
     _ipex_version = "N/A"
     try:
@@ -545,7 +577,10 @@ def is_in_notebook():
             raise ImportError("console")
         if "VSCODE_PID" in os.environ:
             raise ImportError("vscode")
-        if "DATABRICKS_RUNTIME_VERSION" in os.environ and os.environ["DATABRICKS_RUNTIME_VERSION"] < "11.0":
+        if (
+            "DATABRICKS_RUNTIME_VERSION" in os.environ
+            and os.environ["DATABRICKS_RUNTIME_VERSION"] < "11.0"
+        ):
             # Databricks Runtime 11.0 and above uses IPython kernel by default so it should be compatible with Jupyter notebook
             # https://docs.microsoft.com/en-us/azure/databricks/notebooks/ipython-kernel
             raise ImportError("databricks")
@@ -577,7 +612,9 @@ def is_sagemaker_dp_enabled():
     try:
         # Parse it and check the field "sagemaker_distributed_dataparallel_enabled".
         sagemaker_params = json.loads(sagemaker_params)
-        if not sagemaker_params.get("sagemaker_distributed_dataparallel_enabled", False):
+        if not sagemaker_params.get(
+            "sagemaker_distributed_dataparallel_enabled", False
+        ):
             return False
     except json.JSONDecodeError:
         return False
@@ -889,13 +926,22 @@ BACKENDS_MAPPING = OrderedDict(
         ("pytesseract", (is_pytesseract_available, PYTESSERACT_IMPORT_ERROR)),
         ("sacremoses", (is_sacremoses_available, SACREMOSES_IMPORT_ERROR)),
         ("scatter", (is_scatter_available, SCATTER_IMPORT_ERROR)),
-        ("pytorch_quantization", (is_pytorch_quantization_available, PYTORCH_QUANTIZATION_IMPORT_ERROR)),
+        (
+            "pytorch_quantization",
+            (is_pytorch_quantization_available, PYTORCH_QUANTIZATION_IMPORT_ERROR),
+        ),
         ("sentencepiece", (is_sentencepiece_available, SENTENCEPIECE_IMPORT_ERROR)),
         ("sklearn", (is_sklearn_available, SKLEARN_IMPORT_ERROR)),
         ("speech", (is_speech_available, SPEECH_IMPORT_ERROR)),
-        ("tensorflow_probability", (is_tensorflow_probability_available, TENSORFLOW_PROBABILITY_IMPORT_ERROR)),
+        (
+            "tensorflow_probability",
+            (is_tensorflow_probability_available, TENSORFLOW_PROBABILITY_IMPORT_ERROR),
+        ),
         ("tf", (is_tf_available, TENSORFLOW_IMPORT_ERROR)),
-        ("tensorflow_text", (is_tensorflow_text_available, TENSORFLOW_TEXT_IMPORT_ERROR)),
+        (
+            "tensorflow_text",
+            (is_tensorflow_text_available, TENSORFLOW_TEXT_IMPORT_ERROR),
+        ),
         ("timm", (is_timm_available, TIMM_IMPORT_ERROR)),
         ("tokenizers", (is_tokenizers_available, TOKENIZERS_IMPORT_ERROR)),
         ("torch", (is_torch_available, PYTORCH_IMPORT_ERROR)),
@@ -914,11 +960,21 @@ def requires_backends(obj, backends):
     name = obj.__name__ if hasattr(obj, "__name__") else obj.__class__.__name__
 
     # Raise an error for users who might not realize that classes without "TF" are torch-only
-    if "torch" in backends and "tf" not in backends and not is_torch_available() and is_tf_available():
+    if (
+        "torch" in backends
+        and "tf" not in backends
+        and not is_torch_available()
+        and is_tf_available()
+    ):
         raise ImportError(PYTORCH_IMPORT_ERROR_WITH_TF.format(name))
 
     # Raise the inverse error for PyTorch users trying to load TF classes
-    if "tf" in backends and "torch" not in backends and is_torch_available() and not is_tf_available():
+    if (
+        "tf" in backends
+        and "torch" not in backends
+        and is_torch_available()
+        and not is_tf_available()
+    ):
         raise ImportError(TF_IMPORT_ERROR_WITH_PYTORCH.format(name))
 
     checks = (BACKENDS_MAPPING[backend] for backend in backends)
@@ -978,7 +1034,9 @@ class _LazyModule(ModuleType):
 
     # Very heavily inspired by optuna.integration._IntegrationModule
     # https://github.com/optuna/optuna/blob/master/optuna/integration/__init__.py
-    def __init__(self, name, module_file, import_structure, module_spec=None, extra_objects=None):
+    def __init__(
+        self, name, module_file, import_structure, module_spec=None, extra_objects=None
+    ):
         super().__init__(name)
         self._modules = set(import_structure.keys())
         self._class_to_module = {}
@@ -986,7 +1044,9 @@ class _LazyModule(ModuleType):
             for value in values:
                 self._class_to_module[value] = key
         # Needed for autocompletion in an IDE
-        self.__all__ = list(import_structure.keys()) + list(chain(*import_structure.values()))
+        self.__all__ = list(import_structure.keys()) + list(
+            chain(*import_structure.values())
+        )
         self.__file__ = module_file
         self.__spec__ = module_spec
         self.__path__ = [os.path.dirname(module_file)]

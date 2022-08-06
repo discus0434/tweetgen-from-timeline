@@ -66,7 +66,9 @@ if is_tokenizers_available():
 class AutoTokenizerTest(unittest.TestCase):
     @slow
     def test_tokenizer_from_pretrained(self):
-        for model_name in (x for x in BERT_PRETRAINED_CONFIG_ARCHIVE_MAP.keys() if "japanese" not in x):
+        for model_name in (
+            x for x in BERT_PRETRAINED_CONFIG_ARCHIVE_MAP.keys() if "japanese" not in x
+        ):
             tokenizer = AutoTokenizer.from_pretrained(model_name)
             self.assertIsNotNone(tokenizer)
             self.assertIsInstance(tokenizer, (BertTokenizer, BertTokenizerFast))
@@ -92,35 +94,53 @@ class AutoTokenizerTest(unittest.TestCase):
         config = AutoConfig.from_pretrained(DUMMY_DIFF_TOKENIZER_IDENTIFIER)
         self.assertIsInstance(config, RobertaConfig)
         # Check that tokenizer_type ≠ model_type
-        tokenizer = AutoTokenizer.from_pretrained(DUMMY_DIFF_TOKENIZER_IDENTIFIER, config=config)
+        tokenizer = AutoTokenizer.from_pretrained(
+            DUMMY_DIFF_TOKENIZER_IDENTIFIER, config=config
+        )
         self.assertIsInstance(tokenizer, (BertTokenizer, BertTokenizerFast))
         self.assertEqual(tokenizer.vocab_size, 12)
 
     def test_tokenizer_from_type(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
-            shutil.copy("./tests/fixtures/vocab.txt", os.path.join(tmp_dir, "vocab.txt"))
+            shutil.copy(
+                "./tests/fixtures/vocab.txt", os.path.join(tmp_dir, "vocab.txt")
+            )
 
-            tokenizer = AutoTokenizer.from_pretrained(tmp_dir, tokenizer_type="bert", use_fast=False)
+            tokenizer = AutoTokenizer.from_pretrained(
+                tmp_dir, tokenizer_type="bert", use_fast=False
+            )
             self.assertIsInstance(tokenizer, BertTokenizer)
 
         with tempfile.TemporaryDirectory() as tmp_dir:
-            shutil.copy("./tests/fixtures/vocab.json", os.path.join(tmp_dir, "vocab.json"))
-            shutil.copy("./tests/fixtures/merges.txt", os.path.join(tmp_dir, "merges.txt"))
+            shutil.copy(
+                "./tests/fixtures/vocab.json", os.path.join(tmp_dir, "vocab.json")
+            )
+            shutil.copy(
+                "./tests/fixtures/merges.txt", os.path.join(tmp_dir, "merges.txt")
+            )
 
-            tokenizer = AutoTokenizer.from_pretrained(tmp_dir, tokenizer_type="gpt2", use_fast=False)
+            tokenizer = AutoTokenizer.from_pretrained(
+                tmp_dir, tokenizer_type="gpt2", use_fast=False
+            )
             self.assertIsInstance(tokenizer, GPT2Tokenizer)
 
     @require_tokenizers
     def test_tokenizer_from_type_fast(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
-            shutil.copy("./tests/fixtures/vocab.txt", os.path.join(tmp_dir, "vocab.txt"))
+            shutil.copy(
+                "./tests/fixtures/vocab.txt", os.path.join(tmp_dir, "vocab.txt")
+            )
 
             tokenizer = AutoTokenizer.from_pretrained(tmp_dir, tokenizer_type="bert")
             self.assertIsInstance(tokenizer, BertTokenizerFast)
 
         with tempfile.TemporaryDirectory() as tmp_dir:
-            shutil.copy("./tests/fixtures/vocab.json", os.path.join(tmp_dir, "vocab.json"))
-            shutil.copy("./tests/fixtures/merges.txt", os.path.join(tmp_dir, "merges.txt"))
+            shutil.copy(
+                "./tests/fixtures/vocab.json", os.path.join(tmp_dir, "vocab.json")
+            )
+            shutil.copy(
+                "./tests/fixtures/merges.txt", os.path.join(tmp_dir, "merges.txt")
+            )
 
             tokenizer = AutoTokenizer.from_pretrained(tmp_dir, tokenizer_type="gpt2")
             self.assertIsInstance(tokenizer, GPT2TokenizerFast)
@@ -132,7 +152,9 @@ class AutoTokenizerTest(unittest.TestCase):
     @require_tokenizers
     def test_tokenizer_identifier_with_correct_config(self):
         for tokenizer_class in [BertTokenizer, BertTokenizerFast, AutoTokenizer]:
-            tokenizer = tokenizer_class.from_pretrained("wietsedv/bert-base-dutch-cased")
+            tokenizer = tokenizer_class.from_pretrained(
+                "wietsedv/bert-base-dutch-cased"
+            )
             self.assertIsInstance(tokenizer, (BertTokenizer, BertTokenizerFast))
 
             if isinstance(tokenizer, BertTokenizer):
@@ -171,23 +193,34 @@ class AutoTokenizerTest(unittest.TestCase):
 
     @require_tokenizers
     def test_from_pretrained_use_fast_toggle(self):
-        self.assertIsInstance(AutoTokenizer.from_pretrained("bert-base-cased", use_fast=False), BertTokenizer)
-        self.assertIsInstance(AutoTokenizer.from_pretrained("bert-base-cased"), BertTokenizerFast)
+        self.assertIsInstance(
+            AutoTokenizer.from_pretrained("bert-base-cased", use_fast=False),
+            BertTokenizer,
+        )
+        self.assertIsInstance(
+            AutoTokenizer.from_pretrained("bert-base-cased"), BertTokenizerFast
+        )
 
     @require_tokenizers
     def test_do_lower_case(self):
-        tokenizer = AutoTokenizer.from_pretrained("distilbert-base-uncased", do_lower_case=False)
+        tokenizer = AutoTokenizer.from_pretrained(
+            "distilbert-base-uncased", do_lower_case=False
+        )
         sample = "Hello, world. How are you?"
         tokens = tokenizer.tokenize(sample)
         self.assertEqual("[UNK]", tokens[0])
 
-        tokenizer = AutoTokenizer.from_pretrained("microsoft/mpnet-base", do_lower_case=False)
+        tokenizer = AutoTokenizer.from_pretrained(
+            "microsoft/mpnet-base", do_lower_case=False
+        )
         tokens = tokenizer.tokenize(sample)
         self.assertEqual("[UNK]", tokens[0])
 
     @require_tokenizers
     def test_PreTrainedTokenizerFast_from_pretrained(self):
-        tokenizer = AutoTokenizer.from_pretrained("robot-test/dummy-tokenizer-fast-with-model-config")
+        tokenizer = AutoTokenizer.from_pretrained(
+            "robot-test/dummy-tokenizer-fast-with-model-config"
+        )
         self.assertEqual(type(tokenizer), PreTrainedTokenizerFast)
         self.assertEqual(tokenizer.model_max_length, 512)
         self.assertEqual(tokenizer.vocab_size, 30000)
@@ -261,24 +294,36 @@ class AutoTokenizerTest(unittest.TestCase):
             # Can register in two steps
             AutoTokenizer.register(CustomConfig, slow_tokenizer_class=CustomTokenizer)
             self.assertEqual(TOKENIZER_MAPPING[CustomConfig], (CustomTokenizer, None))
-            AutoTokenizer.register(CustomConfig, fast_tokenizer_class=CustomTokenizerFast)
-            self.assertEqual(TOKENIZER_MAPPING[CustomConfig], (CustomTokenizer, CustomTokenizerFast))
+            AutoTokenizer.register(
+                CustomConfig, fast_tokenizer_class=CustomTokenizerFast
+            )
+            self.assertEqual(
+                TOKENIZER_MAPPING[CustomConfig], (CustomTokenizer, CustomTokenizerFast)
+            )
 
             del TOKENIZER_MAPPING._extra_content[CustomConfig]
             # Can register in one step
             AutoTokenizer.register(
-                CustomConfig, slow_tokenizer_class=CustomTokenizer, fast_tokenizer_class=CustomTokenizerFast
+                CustomConfig,
+                slow_tokenizer_class=CustomTokenizer,
+                fast_tokenizer_class=CustomTokenizerFast,
             )
-            self.assertEqual(TOKENIZER_MAPPING[CustomConfig], (CustomTokenizer, CustomTokenizerFast))
+            self.assertEqual(
+                TOKENIZER_MAPPING[CustomConfig], (CustomTokenizer, CustomTokenizerFast)
+            )
 
             # Trying to register something existing in the Transformers library will raise an error
             with self.assertRaises(ValueError):
-                AutoTokenizer.register(BertConfig, fast_tokenizer_class=BertTokenizerFast)
+                AutoTokenizer.register(
+                    BertConfig, fast_tokenizer_class=BertTokenizerFast
+                )
 
             # We pass through a bert tokenizer fast cause there is no converter slow to fast for our new toknizer
             # and that model does not have a tokenizer.json
             with tempfile.TemporaryDirectory() as tmp_dir:
-                bert_tokenizer = BertTokenizerFast.from_pretrained(SMALL_MODEL_IDENTIFIER)
+                bert_tokenizer = BertTokenizerFast.from_pretrained(
+                    SMALL_MODEL_IDENTIFIER
+                )
                 bert_tokenizer.save_pretrained(tmp_dir)
                 tokenizer = CustomTokenizerFast.from_pretrained(tmp_dir)
 
@@ -298,14 +343,18 @@ class AutoTokenizerTest(unittest.TestCase):
                 del TOKENIZER_MAPPING._extra_content[CustomConfig]
 
     def test_from_pretrained_dynamic_tokenizer(self):
-        tokenizer = AutoTokenizer.from_pretrained("hf-internal-testing/test_dynamic_tokenizer", trust_remote_code=True)
+        tokenizer = AutoTokenizer.from_pretrained(
+            "hf-internal-testing/test_dynamic_tokenizer", trust_remote_code=True
+        )
         self.assertTrue(tokenizer.special_attribute_present)
         if is_tokenizers_available():
             self.assertEqual(tokenizer.__class__.__name__, "NewTokenizerFast")
 
             # Test we can also load the slow version
             tokenizer = AutoTokenizer.from_pretrained(
-                "hf-internal-testing/test_dynamic_tokenizer", trust_remote_code=True, use_fast=False
+                "hf-internal-testing/test_dynamic_tokenizer",
+                trust_remote_code=True,
+                use_fast=False,
             )
             self.assertTrue(tokenizer.special_attribute_present)
             self.assertEqual(tokenizer.__class__.__name__, "NewTokenizer")
@@ -322,7 +371,9 @@ class AutoTokenizerTest(unittest.TestCase):
 
             # Test we can also load the slow version
             tokenizer = AutoTokenizer.from_pretrained(
-                "hf-internal-testing/test_dynamic_tokenizer_legacy", trust_remote_code=True, use_fast=False
+                "hf-internal-testing/test_dynamic_tokenizer_legacy",
+                trust_remote_code=True,
+                use_fast=False,
             )
             self.assertTrue(tokenizer.special_attribute_present)
             self.assertEqual(tokenizer.__class__.__name__, "NewTokenizer")
@@ -331,12 +382,16 @@ class AutoTokenizerTest(unittest.TestCase):
 
     def test_repo_not_found(self):
         with self.assertRaisesRegex(
-            EnvironmentError, "bert-base is not a local folder and is not a valid model identifier"
+            EnvironmentError,
+            "bert-base is not a local folder and is not a valid model identifier",
         ):
             _ = AutoTokenizer.from_pretrained("bert-base")
 
     def test_revision_not_found(self):
         with self.assertRaisesRegex(
-            EnvironmentError, r"aaaaaa is not a valid git identifier \(branch name, tag name or commit id\)"
+            EnvironmentError,
+            r"aaaaaa is not a valid git identifier \(branch name, tag name or commit id\)",
         ):
-            _ = AutoTokenizer.from_pretrained(DUMMY_UNKNOWN_IDENTIFIER, revision="aaaaaa")
+            _ = AutoTokenizer.from_pretrained(
+                DUMMY_UNKNOWN_IDENTIFIER, revision="aaaaaa"
+            )

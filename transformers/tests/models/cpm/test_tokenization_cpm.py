@@ -32,8 +32,30 @@ class CpmTokenizationTest(XLNetModelTest):
 
         input_tokens = tokens + [tokenizer.unk_token]
 
-        input_bpe_tokens = [13789, 13283, 1421, 8, 10, 1164, 13608, 16528, 63, 8, 9, 440, 108, 440, 121, 90, 8, 12, 0]
-        self.assertListEqual(tokenizer.convert_tokens_to_ids(input_tokens), input_bpe_tokens)
+        input_bpe_tokens = [
+            13789,
+            13283,
+            1421,
+            8,
+            10,
+            1164,
+            13608,
+            16528,
+            63,
+            8,
+            9,
+            440,
+            108,
+            440,
+            121,
+            90,
+            8,
+            12,
+            0,
+        ]
+        self.assertListEqual(
+            tokenizer.convert_tokens_to_ids(input_tokens), input_bpe_tokens
+        )
 
         reconstructed_text = tokenizer.decode(input_bpe_tokens)
         self.assertEqual(reconstructed_text, normalized_text)

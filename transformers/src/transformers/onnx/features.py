@@ -131,7 +131,9 @@ class FeaturesManager:
         ),
         # BEiT cannot be used with the masked image modeling autoclass, so this feature is excluded here
         "beit": supported_features_mapping(
-            "default", "image-classification", onnx_config_cls="models.beit.BeitOnnxConfig"
+            "default",
+            "image-classification",
+            onnx_config_cls="models.beit.BeitOnnxConfig",
         ),
         "bert": supported_features_mapping(
             "default",
@@ -247,7 +249,10 @@ class FeaturesManager:
             onnx_config_cls="models.deberta_v2.DebertaV2OnnxConfig",
         ),
         "deit": supported_features_mapping(
-            "default", "image-classification", "masked-im", onnx_config_cls="models.deit.DeiTOnnxConfig"
+            "default",
+            "image-classification",
+            "masked-im",
+            onnx_config_cls="models.deit.DeiTOnnxConfig",
         ),
         "detr": supported_features_mapping(
             "default",
@@ -334,7 +339,9 @@ class FeaturesManager:
             onnx_config_cls="models.layoutlmv3.LayoutLMv3OnnxConfig",
         ),
         "levit": supported_features_mapping(
-            "default", "image-classification", onnx_config_cls="models.levit.LevitOnnxConfig"
+            "default",
+            "image-classification",
+            onnx_config_cls="models.levit.LevitOnnxConfig",
         ),
         "longt5": supported_features_mapping(
             "default",
@@ -433,7 +440,10 @@ class FeaturesManager:
             onnx_config_cls="models.t5.T5OnnxConfig",
         ),
         "vit": supported_features_mapping(
-            "default", "image-classification", "masked-im", onnx_config_cls="models.vit.ViTOnnxConfig"
+            "default",
+            "image-classification",
+            "masked-im",
+            onnx_config_cls="models.vit.ViTOnnxConfig",
         ),
         "xlm": supported_features_mapping(
             "default",
@@ -462,7 +472,11 @@ class FeaturesManager:
         ),
     }
 
-    AVAILABLE_FEATURES = sorted(reduce(lambda s1, s2: s1 | s2, (v.keys() for v in _SUPPORTED_MODEL_TYPE.values())))
+    AVAILABLE_FEATURES = sorted(
+        reduce(
+            lambda s1, s2: s1 | s2, (v.keys() for v in _SUPPORTED_MODEL_TYPE.values())
+        )
+    )
 
     @staticmethod
     def get_supported_features_for_model_type(
@@ -482,7 +496,9 @@ class FeaturesManager:
         """
         model_type = model_type.lower()
         if model_type not in FeaturesManager._SUPPORTED_MODEL_TYPE:
-            model_type_and_model_name = f"{model_type} ({model_name})" if model_name else model_type
+            model_type_and_model_name = (
+                f"{model_type} ({model_name})" if model_name else model_type
+            )
             raise KeyError(
                 f"{model_type_and_model_name} is not supported yet. "
                 f"Only {list(FeaturesManager._SUPPORTED_MODEL_TYPE.keys())} are supported. "
@@ -505,9 +521,13 @@ class FeaturesManager:
                 f"Only two frameworks are supported for ONNX export: pt or tf, but {framework} was provided."
             )
         elif framework == "pt" and not is_torch_available():
-            raise RuntimeError("Cannot export model to ONNX using PyTorch because no PyTorch package was found.")
+            raise RuntimeError(
+                "Cannot export model to ONNX using PyTorch because no PyTorch package was found."
+            )
         elif framework == "tf" and not is_tf_available():
-            raise RuntimeError("Cannot export model to ONNX using TensorFlow because no TensorFlow package was found.")
+            raise RuntimeError(
+                "Cannot export model to ONNX using TensorFlow because no TensorFlow package was found."
+            )
 
     @staticmethod
     def get_model_class_for_feature(feature: str, framework: str = "pt") -> Type:
@@ -559,9 +579,13 @@ class FeaturesManager:
             model = model_class.from_pretrained(model, cache_dir=cache_dir)
         except OSError:
             if framework == "pt":
-                model = model_class.from_pretrained(model, from_tf=True, cache_dir=cache_dir)
+                model = model_class.from_pretrained(
+                    model, from_tf=True, cache_dir=cache_dir
+                )
             else:
-                model = model_class.from_pretrained(model, from_pt=True, cache_dir=cache_dir)
+                model = model_class.from_pretrained(
+                    model, from_pt=True, cache_dir=cache_dir
+                )
         return model
 
     @staticmethod
@@ -581,13 +605,18 @@ class FeaturesManager:
         """
         model_type = model.config.model_type.replace("_", "-")
         model_name = getattr(model, "name", "")
-        model_features = FeaturesManager.get_supported_features_for_model_type(model_type, model_name=model_name)
+        model_features = FeaturesManager.get_supported_features_for_model_type(
+            model_type, model_name=model_name
+        )
         if feature not in model_features:
             raise ValueError(
                 f"{model.config.model_type} doesn't support feature {feature}. Supported values are: {model_features}"
             )
 
-        return model.config.model_type, FeaturesManager._SUPPORTED_MODEL_TYPE[model_type][feature]
+        return (
+            model.config.model_type,
+            FeaturesManager._SUPPORTED_MODEL_TYPE[model_type][feature],
+        )
 
     def get_config(model_type: str, feature: str) -> OnnxConfig:
         """

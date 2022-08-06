@@ -44,7 +44,11 @@ from transformers import (
     set_seed,
 )
 from transformers.tokenization_utils_base import PreTrainedTokenizerBase
-from transformers.utils import PaddingStrategy, check_min_version, send_example_telemetry
+from transformers.utils import (
+    PaddingStrategy,
+    check_min_version,
+    send_example_telemetry,
+)
 
 
 # Will error if the minimal version of Transformers is not installed. Remove at your own risks.
@@ -104,7 +108,8 @@ class DataCollatorForMultipleChoice:
         batch_size = len(features)
         num_choices = len(features[0]["input_ids"])
         flattened_features = [
-            [{k: v[i] for k, v in feature.items()} for i in range(num_choices)] for feature in features
+            [{k: v[i] for k, v in feature.items()} for i in range(num_choices)]
+            for feature in features
         ]
         flattened_features = list(chain(*flattened_features))
 
@@ -117,7 +122,9 @@ class DataCollatorForMultipleChoice:
         )
 
         # Un-flatten
-        batch = {k: tf.reshape(v, (batch_size, num_choices, -1)) for k, v in batch.items()}
+        batch = {
+            k: tf.reshape(v, (batch_size, num_choices, -1)) for k, v in batch.items()
+        }
         # Add back labels
         batch["labels"] = tf.convert_to_tensor(labels, dtype=tf.int64)
         return batch
@@ -133,25 +140,39 @@ class ModelArguments:
     """
 
     model_name_or_path: str = field(
-        metadata={"help": "Path to pretrained model or model identifier from huggingface.co/models"}
+        metadata={
+            "help": "Path to pretrained model or model identifier from huggingface.co/models"
+        }
     )
     config_name: Optional[str] = field(
-        default=None, metadata={"help": "Pretrained config name or path if not the same as model_name"}
+        default=None,
+        metadata={
+            "help": "Pretrained config name or path if not the same as model_name"
+        },
     )
     tokenizer_name: Optional[str] = field(
-        default=None, metadata={"help": "Pretrained tokenizer name or path if not the same as model_name"}
+        default=None,
+        metadata={
+            "help": "Pretrained tokenizer name or path if not the same as model_name"
+        },
     )
     cache_dir: Optional[str] = field(
         default=None,
-        metadata={"help": "Where do you want to store the pretrained models downloaded from huggingface.co"},
+        metadata={
+            "help": "Where do you want to store the pretrained models downloaded from huggingface.co"
+        },
     )
     use_fast_tokenizer: bool = field(
         default=True,
-        metadata={"help": "Whether to use one of the fast tokenizer (backed by the tokenizers library) or not."},
+        metadata={
+            "help": "Whether to use one of the fast tokenizer (backed by the tokenizers library) or not."
+        },
     )
     model_revision: str = field(
         default="main",
-        metadata={"help": "The specific model version to use (can be a branch name, tag name or commit id)."},
+        metadata={
+            "help": "The specific model version to use (can be a branch name, tag name or commit id)."
+        },
     )
     use_auth_token: bool = field(
         default=False,
@@ -170,13 +191,18 @@ class DataTrainingArguments:
     Arguments pertaining to what data we are going to input our model for training and eval.
     """
 
-    train_file: Optional[str] = field(default=None, metadata={"help": "The input training data file (a text file)."})
+    train_file: Optional[str] = field(
+        default=None, metadata={"help": "The input training data file (a text file)."}
+    )
     validation_file: Optional[str] = field(
         default=None,
-        metadata={"help": "An optional input evaluation data file to evaluate the perplexity on (a text file)."},
+        metadata={
+            "help": "An optional input evaluation data file to evaluate the perplexity on (a text file)."
+        },
     )
     overwrite_cache: bool = field(
-        default=False, metadata={"help": "Overwrite the cached training and evaluation sets"}
+        default=False,
+        metadata={"help": "Overwrite the cached training and evaluation sets"},
     )
     preprocessing_num_workers: Optional[int] = field(
         default=None,
@@ -223,10 +249,16 @@ class DataTrainingArguments:
     def __post_init__(self):
         if self.train_file is not None:
             extension = self.train_file.split(".")[-1]
-            assert extension in ["csv", "json"], "`train_file` should be a csv or a json file."
+            assert extension in [
+                "csv",
+                "json",
+            ], "`train_file` should be a csv or a json file."
         if self.validation_file is not None:
             extension = self.validation_file.split(".")[-1]
-            assert extension in ["csv", "json"], "`validation_file` should be a csv or a json file."
+            assert extension in [
+                "csv",
+                "json",
+            ], "`validation_file` should be a csv or a json file."
 
 
 # endregion
@@ -238,11 +270,15 @@ def main():
     # or by passing the --help flag to this script.
     # We now keep distinct sets of args, for a cleaner separation of concerns.
 
-    parser = HfArgumentParser((ModelArguments, DataTrainingArguments, TFTrainingArguments))
+    parser = HfArgumentParser(
+        (ModelArguments, DataTrainingArguments, TFTrainingArguments)
+    )
     if len(sys.argv) == 2 and sys.argv[1].endswith(".json"):
         # If we pass only one argument to the script and it's the path to a json file,
         # let's parse it to get our arguments.
-        model_args, data_args, training_args = parser.parse_json_file(json_file=os.path.abspath(sys.argv[1]))
+        model_args, data_args, training_args = parser.parse_json_file(
+            json_file=os.path.abspath(sys.argv[1])
+        )
     else:
         model_args, data_args, training_args = parser.parse_args_into_dataclasses()
 
@@ -270,8 +306,13 @@ def main():
 
     # region Checkpoints
     checkpoint = None
-    if len(os.listdir(training_args.output_dir)) > 0 and not training_args.overwrite_output_dir:
-        if (output_dir / CONFIG_NAME).is_file() and (output_dir / TF2_WEIGHTS_NAME).is_file():
+    if (
+        len(os.listdir(training_args.output_dir)) > 0
+        and not training_args.overwrite_output_dir
+    ):
+        if (output_dir / CONFIG_NAME).is_file() and (
+            output_dir / TF2_WEIGHTS_NAME
+        ).is_file():
             checkpoint = output_dir
             logger.info(
                 f"Checkpoint detected, resuming training from checkpoint in {training_args.output_dir}. To avoid this"
@@ -345,7 +386,9 @@ def main():
         use_auth_token=True if model_args.use_auth_token else None,
     )
     tokenizer = AutoTokenizer.from_pretrained(
-        model_args.tokenizer_name if model_args.tokenizer_name else model_args.model_name_or_path,
+        model_args.tokenizer_name
+        if model_args.tokenizer_name
+        else model_args.model_name_or_path,
         cache_dir=model_args.cache_dir,
         use_fast=model_args.use_fast_tokenizer,
         revision=model_args.model_revision,
@@ -374,7 +417,8 @@ def main():
         first_sentences = [[context] * 4 for context in examples[context_name]]
         question_headers = examples[question_header_name]
         second_sentences = [
-            [f"{header} {examples[end][i]}" for end in ending_names] for i, header in enumerate(question_headers)
+            [f"{header} {examples[end][i]}" for end in ending_names]
+            for i, header in enumerate(question_headers)
         ]
 
         # Flatten out
@@ -382,16 +426,28 @@ def main():
         second_sentences = list(chain(*second_sentences))
 
         # Tokenize
-        tokenized_examples = tokenizer(first_sentences, second_sentences, truncation=True, max_length=max_seq_length)
+        tokenized_examples = tokenizer(
+            first_sentences,
+            second_sentences,
+            truncation=True,
+            max_length=max_seq_length,
+        )
         # Un-flatten
-        data = {k: [v[i : i + 4] for i in range(0, len(v), 4)] for k, v in tokenized_examples.items()}
+        data = {
+            k: [v[i : i + 4] for i in range(0, len(v), 4)]
+            for k, v in tokenized_examples.items()
+        }
         return data
 
     if training_args.do_train:
         if "train" not in raw_datasets:
             raise ValueError("--do_train requires a train dataset")
         train_dataset = raw_datasets["train"]
-        non_label_columns = [feature for feature in train_dataset.features if feature not in ("label", "labels")]
+        non_label_columns = [
+            feature
+            for feature in train_dataset.features
+            if feature not in ("label", "labels")
+        ]
         if data_args.max_train_samples is not None:
             max_train_samples = min(len(train_dataset), data_args.max_train_samples)
             train_dataset = train_dataset.select(range(max_train_samples))
@@ -408,11 +464,17 @@ def main():
             raise ValueError("--do_eval requires a validation dataset")
         eval_dataset = raw_datasets["validation"]
         if not training_args.do_train:
-            non_label_columns = [feature for feature in eval_dataset.features if feature not in ("label", "labels")]
+            non_label_columns = [
+                feature
+                for feature in eval_dataset.features
+                if feature not in ("label", "labels")
+            ]
         if data_args.max_eval_samples is not None:
             max_eval_samples = min(len(eval_dataset), data_args.max_eval_samples)
             eval_dataset = eval_dataset.select(range(max_eval_samples))
-        with training_args.main_process_first(desc="validation dataset map pre-processing"):
+        with training_args.main_process_first(
+            desc="validation dataset map pre-processing"
+        ):
             eval_dataset = eval_dataset.map(
                 preprocess_function,
                 batched=True,
@@ -442,15 +504,23 @@ def main():
         )
 
         num_replicas = training_args.strategy.num_replicas_in_sync
-        total_train_batch_size = training_args.per_device_train_batch_size * num_replicas
+        total_train_batch_size = (
+            training_args.per_device_train_batch_size * num_replicas
+        )
         total_eval_batch_size = training_args.per_device_eval_batch_size * num_replicas
         if training_args.do_train:
-            total_train_steps = (len(train_dataset) // total_train_batch_size) * int(training_args.num_train_epochs)
+            total_train_steps = (len(train_dataset) // total_train_batch_size) * int(
+                training_args.num_train_epochs
+            )
             optimizer, lr_schedule = create_optimizer(
-                init_lr=training_args.learning_rate, num_train_steps=int(total_train_steps), num_warmup_steps=0
+                init_lr=training_args.learning_rate,
+                num_train_steps=int(total_train_steps),
+                num_warmup_steps=0,
             )
         else:
-            optimizer = "adam"  # Just put anything in here, since we're not using it anyway
+            optimizer = (
+                "adam"  # Just put anything in here, since we're not using it anyway
+            )
         model.compile(
             optimizer=optimizer,
             loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
@@ -462,7 +532,11 @@ def main():
         if training_args.do_train:
             dataset_exclude_cols = set(non_label_columns + ["label"])
             tf_train_dataset = train_dataset.to_tf_dataset(
-                columns=[col for col in train_dataset.column_names if col not in dataset_exclude_cols],
+                columns=[
+                    col
+                    for col in train_dataset.column_names
+                    if col not in dataset_exclude_cols
+                ],
                 shuffle=True,
                 batch_size=total_train_batch_size,
                 collate_fn=data_collator,
@@ -473,13 +547,19 @@ def main():
 
             if training_args.do_eval:
                 validation_data = eval_dataset.to_tf_dataset(
-                    columns=[col for col in eval_dataset.column_names if col not in dataset_exclude_cols],
+                    columns=[
+                        col
+                        for col in eval_dataset.column_names
+                        if col not in dataset_exclude_cols
+                    ],
                     shuffle=False,
                     batch_size=total_eval_batch_size,
                     collate_fn=data_collator,
                     drop_remainder=True,
                     # `label_cols` is needed for user-defined losses, such as in this example
-                    label_cols="label" if "label" in eval_dataset.column_names else None,
+                    label_cols="label"
+                    if "label" in eval_dataset.column_names
+                    else None,
                 )
             else:
                 validation_data = None
@@ -496,7 +576,11 @@ def main():
             dataset_exclude_cols = set(non_label_columns + ["label"])
             # Do a standalone evaluation pass
             tf_eval_dataset = eval_dataset.to_tf_dataset(
-                columns=[col for col in eval_dataset.column_names if col not in dataset_exclude_cols],
+                columns=[
+                    col
+                    for col in eval_dataset.column_names
+                    if col not in dataset_exclude_cols
+                ],
                 shuffle=False,
                 batch_size=total_eval_batch_size,
                 collate_fn=data_collator,

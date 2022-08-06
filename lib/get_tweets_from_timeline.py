@@ -44,12 +44,8 @@ def get_tweets_from_timeline(
     if not os.path.exists(Path(output_dir)):
         os.makedirs(Path(output_dir), exist_ok=True)
 
-    with open(
-        Path(output_dir) / "timeline.txt", "a"
-    ) as f:
+    with open(Path(output_dir) / "timeline.txt", "a") as f:
         f.write(tweets)
 
-    with open(
-        Path(output_dir) / "timeline_today.txt", "w"
-    ) as f:
+    with open(Path(output_dir) / "timeline_today.txt", "w") as f:
         f.write(tweets)

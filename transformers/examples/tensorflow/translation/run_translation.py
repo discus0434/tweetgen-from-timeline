@@ -56,10 +56,19 @@ from transformers.utils.versions import require_version
 # Will error if the minimal version of Transformers is not installed. Remove at your own risks.
 check_min_version("4.22.0.dev0")
 
-require_version("datasets>=1.8.0", "To fix: pip install -r examples/pytorch/summarization/requirements.txt")
+require_version(
+    "datasets>=1.8.0",
+    "To fix: pip install -r examples/pytorch/summarization/requirements.txt",
+)
 
 logger = logging.getLogger(__name__)
-MULTILINGUAL_TOKENIZERS = [MBartTokenizer, MBartTokenizerFast, MBart50Tokenizer, MBart50TokenizerFast, M2M100Tokenizer]
+MULTILINGUAL_TOKENIZERS = [
+    MBartTokenizer,
+    MBartTokenizerFast,
+    MBart50Tokenizer,
+    MBart50TokenizerFast,
+    M2M100Tokenizer,
+]
 # endregion
 
 
@@ -71,25 +80,39 @@ class ModelArguments:
     """
 
     model_name_or_path: str = field(
-        metadata={"help": "Path to pretrained model or model identifier from huggingface.co/models"}
+        metadata={
+            "help": "Path to pretrained model or model identifier from huggingface.co/models"
+        }
     )
     config_name: Optional[str] = field(
-        default=None, metadata={"help": "Pretrained config name or path if not the same as model_name"}
+        default=None,
+        metadata={
+            "help": "Pretrained config name or path if not the same as model_name"
+        },
     )
     tokenizer_name: Optional[str] = field(
-        default=None, metadata={"help": "Pretrained tokenizer name or path if not the same as model_name"}
+        default=None,
+        metadata={
+            "help": "Pretrained tokenizer name or path if not the same as model_name"
+        },
     )
     cache_dir: Optional[str] = field(
         default=None,
-        metadata={"help": "Where to store the pretrained models downloaded from huggingface.co"},
+        metadata={
+            "help": "Where to store the pretrained models downloaded from huggingface.co"
+        },
     )
     use_fast_tokenizer: bool = field(
         default=True,
-        metadata={"help": "Whether to use one of the fast tokenizer (backed by the tokenizers library) or not."},
+        metadata={
+            "help": "Whether to use one of the fast tokenizer (backed by the tokenizers library) or not."
+        },
     )
     model_revision: str = field(
         default="main",
-        metadata={"help": "The specific model version to use (can be a branch name, tag name or commit id)."},
+        metadata={
+            "help": "The specific model version to use (can be a branch name, tag name or commit id)."
+        },
     )
     use_auth_token: bool = field(
         default=False,
@@ -108,16 +131,25 @@ class DataTrainingArguments:
     Arguments pertaining to what data we are going to input our model for training and eval.
     """
 
-    source_lang: str = field(default=None, metadata={"help": "Source language id for translation."})
-    target_lang: str = field(default=None, metadata={"help": "Target language id for translation."})
+    source_lang: str = field(
+        default=None, metadata={"help": "Source language id for translation."}
+    )
+    target_lang: str = field(
+        default=None, metadata={"help": "Target language id for translation."}
+    )
     dataset_name: Optional[str] = field(
-        default=None, metadata={"help": "The name of the dataset to use (via the datasets library)."}
+        default=None,
+        metadata={"help": "The name of the dataset to use (via the datasets library)."},
     )
     dataset_config_name: Optional[str] = field(
-        default=None, metadata={"help": "The configuration name of the dataset to use (via the datasets library)."}
+        default=None,
+        metadata={
+            "help": "The configuration name of the dataset to use (via the datasets library)."
+        },
     )
     train_file: Optional[str] = field(
-        default=None, metadata={"help": "The input training data file (a jsonlines or csv file)."}
+        default=None,
+        metadata={"help": "The input training data file (a jsonlines or csv file)."},
     )
     validation_file: Optional[str] = field(
         default=None,
@@ -134,7 +166,8 @@ class DataTrainingArguments:
         },
     )
     overwrite_cache: bool = field(
-        default=False, metadata={"help": "Overwrite the cached training and evaluation sets"}
+        default=False,
+        metadata={"help": "Overwrite the cached training and evaluation sets"},
     )
     preprocessing_num_workers: Optional[int] = field(
         default=None,
@@ -222,19 +255,34 @@ class DataTrainingArguments:
         },
     )
     source_prefix: Optional[str] = field(
-        default=None, metadata={"help": "A prefix to add before every source text (useful for T5 models)."}
+        default=None,
+        metadata={
+            "help": "A prefix to add before every source text (useful for T5 models)."
+        },
     )
 
     def __post_init__(self):
-        if self.dataset_name is None and self.train_file is None and self.validation_file is None:
-            raise ValueError("Need either a dataset name or a training/validation file.")
+        if (
+            self.dataset_name is None
+            and self.train_file is None
+            and self.validation_file is None
+        ):
+            raise ValueError(
+                "Need either a dataset name or a training/validation file."
+            )
         else:
             if self.train_file is not None:
                 extension = self.train_file.split(".")[-1]
-                assert extension in ["csv", "json"], "`train_file` should be a csv or a json file."
+                assert extension in [
+                    "csv",
+                    "json",
+                ], "`train_file` should be a csv or a json file."
             if self.validation_file is not None:
                 extension = self.validation_file.split(".")[-1]
-                assert extension in ["csv", "json"], "`validation_file` should be a csv or a json file."
+                assert extension in [
+                    "csv",
+                    "json",
+                ], "`validation_file` should be a csv or a json file."
         if self.val_max_target_length is None:
             self.val_max_target_length = self.max_target_length
 
@@ -250,14 +298,23 @@ def sample_generator(dataset, model, tokenizer, shuffle, pad_to_multiple_of=None
     for sample_idx in sample_ordering:
         example = dataset[int(sample_idx)]
         # Handle dicts with proper padding and conversion to tensor.
-        example = tokenizer.pad(example, return_tensors="np", pad_to_multiple_of=pad_to_multiple_of)
-        example = {key: tf.convert_to_tensor(arr, dtype_hint=tf.int32) for key, arr in example.items()}
-        if model is not None and hasattr(model, "prepare_decoder_input_ids_from_labels"):
+        example = tokenizer.pad(
+            example, return_tensors="np", pad_to_multiple_of=pad_to_multiple_of
+        )
+        example = {
+            key: tf.convert_to_tensor(arr, dtype_hint=tf.int32)
+            for key, arr in example.items()
+        }
+        if model is not None and hasattr(
+            model, "prepare_decoder_input_ids_from_labels"
+        ):
             decoder_input_ids = model.prepare_decoder_input_ids_from_labels(
                 labels=tf.expand_dims(example["labels"], 0)
             )
             example["decoder_input_ids"] = tf.squeeze(decoder_input_ids, 0)
-        yield example, example["labels"]  # TF needs some kind of labels, even if we don't use them
+        yield example, example[
+            "labels"
+        ]  # TF needs some kind of labels, even if we don't use them
     return
 
 
@@ -268,7 +325,9 @@ def sample_generator(dataset, model, tokenizer, shuffle, pad_to_multiple_of=None
 def dataset_to_tf(dataset, model, tokenizer, total_batch_size, num_epochs, shuffle):
     if dataset is None:
         return None
-    train_generator = partial(sample_generator, dataset, model, tokenizer, shuffle=shuffle)
+    train_generator = partial(
+        sample_generator, dataset, model, tokenizer, shuffle=shuffle
+    )
     train_signature = {
         feature: tf.TensorSpec(shape=(None,), dtype=tf.int32)
         for feature in dataset.features
@@ -282,16 +341,23 @@ def dataset_to_tf(dataset, model, tokenizer, total_batch_size, num_epochs, shuff
         train_signature["decoder_input_ids"] = train_signature["labels"]
     # This may need to be changed depending on your particular model or tokenizer!
     padding_values = {
-        key: tf.convert_to_tensor(tokenizer.pad_token_id if tokenizer.pad_token_id is not None else 0, dtype=tf.int32)
+        key: tf.convert_to_tensor(
+            tokenizer.pad_token_id if tokenizer.pad_token_id is not None else 0,
+            dtype=tf.int32,
+        )
         for key in train_signature.keys()
     }
     padding_values["labels"] = tf.convert_to_tensor(-100, dtype=tf.int32)
     train_signature["labels"] = train_signature["input_ids"]
     train_signature = (train_signature, train_signature["labels"])
     options = tf.data.Options()
-    options.experimental_distribute.auto_shard_policy = tf.data.experimental.AutoShardPolicy.OFF
+    options.experimental_distribute.auto_shard_policy = (
+        tf.data.experimental.AutoShardPolicy.OFF
+    )
     tf_dataset = (
-        tf.data.Dataset.from_generator(train_generator, output_signature=train_signature)
+        tf.data.Dataset.from_generator(
+            train_generator, output_signature=train_signature
+        )
         .with_options(options)
         .padded_batch(
             batch_size=total_batch_size,
@@ -312,17 +378,23 @@ def main():
     # or by passing the --help flag to this script.
     # We now keep distinct sets of args, for a cleaner separation of concerns.
 
-    parser = HfArgumentParser((ModelArguments, DataTrainingArguments, TFTrainingArguments))
+    parser = HfArgumentParser(
+        (ModelArguments, DataTrainingArguments, TFTrainingArguments)
+    )
     if len(sys.argv) == 2 and sys.argv[1].endswith(".json"):
         # If we pass only one argument to the script and it's the path to a json file,
         # let's parse it to get our arguments.
-        model_args, data_args, training_args = parser.parse_json_file(json_file=os.path.abspath(sys.argv[1]))
+        model_args, data_args, training_args = parser.parse_json_file(
+            json_file=os.path.abspath(sys.argv[1])
+        )
     else:
         model_args, data_args, training_args = parser.parse_args_into_dataclasses()
 
     # Sending telemetry. Tracking the example usage helps us better allocate resources to maintain them. The
     # information sent is the one passed as arguments along with your Python/PyTorch versions.
-    send_example_telemetry("run_translation", model_args, data_args, framework="tensorflow")
+    send_example_telemetry(
+        "run_translation", model_args, data_args, framework="tensorflow"
+    )
     # endregion
 
     # region Logging
@@ -341,14 +413,20 @@ def main():
 
     # region Detecting last checkpoint
     last_checkpoint = None
-    if os.path.isdir(training_args.output_dir) and training_args.do_train and not training_args.overwrite_output_dir:
+    if (
+        os.path.isdir(training_args.output_dir)
+        and training_args.do_train
+        and not training_args.overwrite_output_dir
+    ):
         last_checkpoint = get_last_checkpoint(training_args.output_dir)
         if last_checkpoint is None and len(os.listdir(training_args.output_dir)) > 0:
             raise ValueError(
                 f"Output directory ({training_args.output_dir}) already exists and is not empty. "
                 "Use --overwrite_output_dir to overcome."
             )
-        elif last_checkpoint is not None and training_args.resume_from_checkpoint is None:
+        elif (
+            last_checkpoint is not None and training_args.resume_from_checkpoint is None
+        ):
             logger.info(
                 f"Checkpoint detected, resuming training at {last_checkpoint}. To avoid this behavior, change "
                 "the `--output_dir` or add `--overwrite_output_dir` to train from scratch."
@@ -401,13 +479,17 @@ def main():
     # download model & vocab.
 
     config = AutoConfig.from_pretrained(
-        model_args.config_name if model_args.config_name else model_args.model_name_or_path,
+        model_args.config_name
+        if model_args.config_name
+        else model_args.model_name_or_path,
         cache_dir=model_args.cache_dir,
         revision=model_args.model_revision,
         use_auth_token=True if model_args.use_auth_token else None,
     )
     tokenizer = AutoTokenizer.from_pretrained(
-        model_args.tokenizer_name if model_args.tokenizer_name else model_args.model_name_or_path,
+        model_args.tokenizer_name
+        if model_args.tokenizer_name
+        else model_args.model_name_or_path,
         cache_dir=model_args.cache_dir,
         use_fast=model_args.use_fast_tokenizer,
         revision=model_args.model_revision,
@@ -432,14 +514,18 @@ def main():
     # For translation we set the codes of our source and target languages (only useful for mBART, the others will
     # ignore those attributes).
     if isinstance(tokenizer, tuple(MULTILINGUAL_TOKENIZERS)):
-        assert data_args.target_lang is not None and data_args.source_lang is not None, (
+        assert (
+            data_args.target_lang is not None and data_args.source_lang is not None
+        ), (
             f"{tokenizer.__class__.__name__} is a multilingual tokenizer which requires --source_lang and "
             "--target_lang arguments."
         )
         tokenizer.src_lang = data_args.source_lang
         tokenizer.tgt_lang = data_args.target_lang
         forced_bos_token_id = (
-            tokenizer.lang_code_to_id[data_args.forced_bos_token] if data_args.forced_bos_token is not None else None
+            tokenizer.lang_code_to_id[data_args.forced_bos_token]
+            if data_args.forced_bos_token is not None
+            else None
         )
 
     # Get the language codes for input/target.
@@ -456,16 +542,27 @@ def main():
         inputs = [ex[source_lang] for ex in examples["translation"]]
         targets = [ex[target_lang] for ex in examples["translation"]]
         inputs = [prefix + inp for inp in inputs]
-        model_inputs = tokenizer(inputs, max_length=data_args.max_source_length, padding=padding, truncation=True)
+        model_inputs = tokenizer(
+            inputs,
+            max_length=data_args.max_source_length,
+            padding=padding,
+            truncation=True,
+        )
 
         # Tokenize targets with the `text_target` keyword argument
-        labels = tokenizer(text_target=targets, max_length=max_target_length, padding=padding, truncation=True)
+        labels = tokenizer(
+            text_target=targets,
+            max_length=max_target_length,
+            padding=padding,
+            truncation=True,
+        )
 
         # If we are padding here, replace all tokenizer.pad_token_id in the labels by -100 when we want to ignore
         # padding in the loss.
         if padding == "max_length" and data_args.ignore_pad_token_for_loss:
             labels["input_ids"] = [
-                [(l if l != tokenizer.pad_token_id else -100) for l in label] for label in labels["input_ids"]
+                [(l if l != tokenizer.pad_token_id else -100) for l in label]
+                for label in labels["input_ids"]
             ]
 
         model_inputs["labels"] = labels["input_ids"]
@@ -498,7 +595,9 @@ def main():
         if data_args.max_eval_samples is not None:
             max_eval_samples = min(len(eval_dataset), data_args.max_eval_samples)
             eval_dataset = eval_dataset.select(range(max_eval_samples))
-        with training_args.main_process_first(desc="validation dataset map pre-processing"):
+        with training_args.main_process_first(
+            desc="validation dataset map pre-processing"
+        ):
             eval_dataset = eval_dataset.map(
                 preprocess_function,
                 batched=True,
@@ -527,22 +626,32 @@ def main():
         # endregion
 
         # region Set decoder_start_token_id
-        if model.config.decoder_start_token_id is None and isinstance(tokenizer, (MBartTokenizer, MBartTokenizerFast)):
+        if model.config.decoder_start_token_id is None and isinstance(
+            tokenizer, (MBartTokenizer, MBartTokenizerFast)
+        ):
             assert (
                 data_args.target_lang is not None and data_args.source_lang is not None
             ), "mBart requires --target_lang and --source_lang"
             if isinstance(tokenizer, MBartTokenizer):
-                model.config.decoder_start_token_id = tokenizer.lang_code_to_id[data_args.target_lang]
+                model.config.decoder_start_token_id = tokenizer.lang_code_to_id[
+                    data_args.target_lang
+                ]
             else:
-                model.config.decoder_start_token_id = tokenizer.convert_tokens_to_ids(data_args.target_lang)
+                model.config.decoder_start_token_id = tokenizer.convert_tokens_to_ids(
+                    data_args.target_lang
+                )
 
         if model.config.decoder_start_token_id is None:
-            raise ValueError("Make sure that `config.decoder_start_token_id` is correctly defined")
+            raise ValueError(
+                "Make sure that `config.decoder_start_token_id` is correctly defined"
+            )
         # endregion
 
         # region Prepare TF Dataset objects
         num_replicas = training_args.strategy.num_replicas_in_sync
-        total_train_batch_size = training_args.per_device_train_batch_size * num_replicas
+        total_train_batch_size = (
+            training_args.per_device_train_batch_size * num_replicas
+        )
         total_eval_batch_size = training_args.per_device_eval_batch_size * num_replicas
         tf_train_dataset = dataset_to_tf(
             train_dataset,
@@ -564,7 +673,9 @@ def main():
 
         # region Optimizer, loss and LR scheduling
         # Scheduler and math around the number of training steps.
-        num_update_steps_per_epoch = len(train_dataset) // training_args.per_device_train_batch_size
+        num_update_steps_per_epoch = (
+            len(train_dataset) // training_args.per_device_train_batch_size
+        )
         num_train_steps = training_args.num_train_epochs * num_update_steps_per_epoch
         optimizer, lr_schedule = create_optimizer(
             init_lr=training_args.learning_rate,
@@ -601,13 +712,17 @@ def main():
         # endregion
 
         # region Training
-        model.compile(loss={"logits": masked_sparse_categorical_crossentropy}, optimizer=optimizer)
+        model.compile(
+            loss={"logits": masked_sparse_categorical_crossentropy}, optimizer=optimizer
+        )
 
         if training_args.do_train:
             logger.info("***** Running training *****")
             logger.info(f"  Num examples = {len(train_dataset)}")
             logger.info(f"  Num Epochs = {training_args.num_train_epochs}")
-            logger.info(f"  Instantaneous batch size per device = {training_args.per_device_train_batch_size}")
+            logger.info(
+                f"  Instantaneous batch size per device = {training_args.per_device_train_batch_size}"
+            )
             logger.info(f"  Total train batch size = {total_train_batch_size}")
             logger.info(f"  Total optimization steps = {num_train_steps}")
 
@@ -629,16 +744,23 @@ def main():
         if training_args.do_eval:
             logger.info("Evaluation...")
             for batch, labels in tqdm(
-                tf_eval_dataset, total=len(eval_dataset) // training_args.per_device_eval_batch_size
+                tf_eval_dataset,
+                total=len(eval_dataset) // training_args.per_device_eval_batch_size,
             ):
                 batch.update(gen_kwargs)
                 generated_tokens = model.generate(**batch)
                 if isinstance(generated_tokens, tuple):
                     generated_tokens = generated_tokens[0]
-                decoded_preds = tokenizer.batch_decode(generated_tokens, skip_special_tokens=True)
+                decoded_preds = tokenizer.batch_decode(
+                    generated_tokens, skip_special_tokens=True
+                )
                 labels = np.where(labels != -100, labels, tokenizer.pad_token_id)
-                decoded_labels = tokenizer.batch_decode(labels, skip_special_tokens=True)
-                decoded_preds, decoded_labels = postprocess_text(decoded_preds, decoded_labels)
+                decoded_labels = tokenizer.batch_decode(
+                    labels, skip_special_tokens=True
+                )
+                decoded_preds, decoded_labels = postprocess_text(
+                    decoded_preds, decoded_labels
+                )
 
                 metric.add_batch(predictions=decoded_preds, references=decoded_labels)
             eval_metric = metric.compute()

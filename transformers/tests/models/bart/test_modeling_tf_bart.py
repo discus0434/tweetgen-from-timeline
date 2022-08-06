@@ -77,10 +77,14 @@ class TFBartModelTester:
 
     def prepare_config_and_inputs_for_common(self):
         input_ids = ids_tensor([self.batch_size, self.seq_length - 1], self.vocab_size)
-        eos_tensor = tf.expand_dims(tf.constant([self.eos_token_id] * self.batch_size), 1)
+        eos_tensor = tf.expand_dims(
+            tf.constant([self.eos_token_id] * self.batch_size), 1
+        )
         input_ids = tf.concat([input_ids, eos_tensor], axis=1)
 
-        decoder_input_ids = ids_tensor([self.batch_size, self.seq_length], self.vocab_size)
+        decoder_input_ids = ids_tensor(
+            [self.batch_size, self.seq_length], self.vocab_size
+        )
 
         config = self.config_cls(
             vocab_size=self.vocab_size,
@@ -113,7 +117,12 @@ class TFBartModelTester:
         self.batch_size = 1
 
         # first forward pass
-        outputs = model(input_ids, attention_mask=attention_mask, head_mask=head_mask, use_cache=True)
+        outputs = model(
+            input_ids,
+            attention_mask=attention_mask,
+            head_mask=head_mask,
+            use_cache=True,
+        )
 
         output, past_key_values = outputs.to_tuple()
 
@@ -125,14 +134,19 @@ class TFBartModelTester:
         next_input_ids = tf.concat([input_ids, next_tokens], axis=-1)
         next_attention_mask = tf.concat([attention_mask, next_attn_mask], axis=-1)
 
-        decoder_position_ids = tf.cast(tf.cumsum(next_attention_mask, axis=1, exclusive=True), dtype=tf.int32)
+        decoder_position_ids = tf.cast(
+            tf.cumsum(next_attention_mask, axis=1, exclusive=True), dtype=tf.int32
+        )
         output_from_no_past = model(
-            next_input_ids, attention_mask=next_attention_mask, position_ids=decoder_position_ids
+            next_input_ids,
+            attention_mask=next_attention_mask,
+            position_ids=decoder_position_ids,
         )
         output_from_no_past = output_from_no_past[0]
 
         decoder_position_ids = (
-            tf.cast(tf.cumsum(next_attn_mask, axis=1, exclusive=True), dtype=tf.int32) + past_key_values[0][0].shape[2]
+            tf.cast(tf.cumsum(next_attn_mask, axis=1, exclusive=True), dtype=tf.int32)
+            + past_key_values[0][0].shape[2]
         )
         output_from_past = model(
             next_tokens,
@@ -150,7 +164,9 @@ class TFBartModelTester:
         output_from_past_slice = output_from_past[:, :, random_slice_idx]
 
         # test that outputs are equal for slice
-        tf.debugging.assert_near(output_from_past_slice, output_from_no_past_slice, rtol=1e-3)
+        tf.debugging.assert_near(
+            output_from_past_slice, output_from_no_past_slice, rtol=1e-3
+        )
 
 
 def prepare_bart_inputs_dict(
@@ -164,21 +180,30 @@ def prepare_bart_inputs_dict(
     cross_attn_head_mask=None,
 ):
     if attention_mask is None:
-        attention_mask = tf.cast(tf.math.not_equal(input_ids, config.pad_token_id), tf.int8)
+        attention_mask = tf.cast(
+            tf.math.not_equal(input_ids, config.pad_token_id), tf.int8
+        )
     if decoder_attention_mask is None:
         decoder_attention_mask = tf.concat(
             [
                 tf.ones(decoder_input_ids[:, :1].shape, dtype=tf.int8),
-                tf.cast(tf.math.not_equal(decoder_input_ids[:, 1:], config.pad_token_id), tf.int8),
+                tf.cast(
+                    tf.math.not_equal(decoder_input_ids[:, 1:], config.pad_token_id),
+                    tf.int8,
+                ),
             ],
             axis=-1,
         )
     if head_mask is None:
         head_mask = tf.ones((config.encoder_layers, config.encoder_attention_heads))
     if decoder_head_mask is None:
-        decoder_head_mask = tf.ones((config.decoder_layers, config.decoder_attention_heads))
+        decoder_head_mask = tf.ones(
+            (config.decoder_layers, config.decoder_attention_heads)
+        )
     if cross_attn_head_mask is None:
-        cross_attn_head_mask = tf.ones((config.decoder_layers, config.decoder_attention_heads))
+        cross_attn_head_mask = tf.ones(
+            (config.decoder_layers, config.decoder_attention_heads)
+        )
     return {
         "input_ids": input_ids,
         "decoder_input_ids": decoder_input_ids,
@@ -192,8 +217,12 @@ def prepare_bart_inputs_dict(
 
 @require_tf
 class TFBartModelTest(TFModelTesterMixin, TFCoreModelTesterMixin, unittest.TestCase):
-    all_model_classes = (TFBartForConditionalGeneration, TFBartModel) if is_tf_available() else ()
-    all_generative_model_classes = (TFBartForConditionalGeneration,) if is_tf_available() else ()
+    all_model_classes = (
+        (TFBartForConditionalGeneration, TFBartModel) if is_tf_available() else ()
+    )
+    all_generative_model_classes = (
+        (TFBartForConditionalGeneration,) if is_tf_available() else ()
+    )
     is_encoder_decoder = True
     test_pruning = False
     test_onnx = True
@@ -249,14 +278,22 @@ class TFBartModelTest(TFModelTesterMixin, TFCoreModelTesterMixin, unittest.TestC
             for size in [config.vocab_size - 10, config.vocab_size + 10, None]:
                 # build the embeddings
                 model = model_class(config=config)
-                old_input_embeddings = _get_word_embedding_weight(model, model.get_input_embeddings())
-                old_output_embeddings = _get_word_embedding_weight(model, model.get_output_embeddings())
+                old_input_embeddings = _get_word_embedding_weight(
+                    model, model.get_input_embeddings()
+                )
+                old_output_embeddings = _get_word_embedding_weight(
+                    model, model.get_output_embeddings()
+                )
                 old_final_logits_bias = model.get_bias()
 
                 # reshape the embeddings
                 model.resize_token_embeddings(size)
-                new_input_embeddings = _get_word_embedding_weight(model, model.get_input_embeddings())
-                new_output_embeddings = _get_word_embedding_weight(model, model.get_output_embeddings())
+                new_input_embeddings = _get_word_embedding_weight(
+                    model, model.get_input_embeddings()
+                )
+                new_output_embeddings = _get_word_embedding_weight(
+                    model, model.get_output_embeddings()
+                )
                 new_final_logits_bias = model.get_bias()
 
                 # check that the resized embeddings size matches the desired size.
@@ -266,28 +303,40 @@ class TFBartModelTest(TFModelTesterMixin, TFCoreModelTesterMixin, unittest.TestC
 
                 # check that weights remain the same after resizing
                 models_equal = True
-                for p1, p2 in zip(old_input_embeddings.value(), new_input_embeddings.value()):
+                for p1, p2 in zip(
+                    old_input_embeddings.value(), new_input_embeddings.value()
+                ):
                     if tf.math.reduce_sum(tf.math.abs(p1 - p2)) > 0:
                         models_equal = False
                 self.assertTrue(models_equal)
 
-                if old_output_embeddings is not None and new_output_embeddings is not None:
+                if (
+                    old_output_embeddings is not None
+                    and new_output_embeddings is not None
+                ):
                     self.assertEqual(new_output_embeddings.shape[0], assert_size)
 
                     models_equal = True
-                    for p1, p2 in zip(old_output_embeddings.value(), new_output_embeddings.value()):
+                    for p1, p2 in zip(
+                        old_output_embeddings.value(), new_output_embeddings.value()
+                    ):
                         if tf.math.reduce_sum(tf.math.abs(p1 - p2)) > 0:
                             models_equal = False
                     self.assertTrue(models_equal)
 
-                if old_final_logits_bias is not None and new_final_logits_bias is not None:
+                if (
+                    old_final_logits_bias is not None
+                    and new_final_logits_bias is not None
+                ):
                     old_final_logits_bias = old_final_logits_bias["final_logits_bias"]
                     new_final_logits_bias = new_final_logits_bias["final_logits_bias"]
                     self.assertEqual(new_final_logits_bias.shape[0], 1)
                     self.assertEqual(new_final_logits_bias.shape[1], assert_size)
 
                     models_equal = True
-                    for old, new in zip(old_final_logits_bias.value(), new_final_logits_bias.value()):
+                    for old, new in zip(
+                        old_final_logits_bias.value(), new_final_logits_bias.value()
+                    ):
                         for p1, p2 in zip(old, new):
                             if tf.math.reduce_sum(tf.math.abs(p1 - p2)) > 0:
                                 models_equal = False
@@ -308,7 +357,9 @@ class TFBartHeadTests(unittest.TestCase):
 
     def _get_config_and_data(self):
         eos_column_vector = tf.ones((4, 1), dtype=tf.int32) * 2
-        input_ids = tf.concat([ids_tensor((4, 6), self.vocab_size - 3) + 3, eos_column_vector], axis=1)
+        input_ids = tf.concat(
+            [ids_tensor((4, 6), self.vocab_size - 3) + 3, eos_column_vector], axis=1
+        )
         batch_size = input_ids.shape[0]
         config = BartConfig(
             vocab_size=self.vocab_size,
@@ -329,9 +380,16 @@ class TFBartHeadTests(unittest.TestCase):
 
     def test_lm_forward(self):
         config, input_ids, batch_size = self._get_config_and_data()
-        decoder_lm_labels = ids_tensor([batch_size, input_ids.shape[1]], self.vocab_size)
+        decoder_lm_labels = ids_tensor(
+            [batch_size, input_ids.shape[1]], self.vocab_size
+        )
         lm_model = TFBartForConditionalGeneration(config)
-        outputs = lm_model(input_ids=input_ids, labels=decoder_lm_labels, decoder_input_ids=input_ids, use_cache=False)
+        outputs = lm_model(
+            input_ids=input_ids,
+            labels=decoder_lm_labels,
+            decoder_input_ids=input_ids,
+            use_cache=False,
+        )
         expected_shape = (batch_size, input_ids.shape[1], config.vocab_size)
         self.assertEqual(outputs.logits.shape, expected_shape)
 
@@ -350,7 +408,9 @@ class TFBartHeadTests(unittest.TestCase):
         lm_model = TFBartForConditionalGeneration(config)
         context = tf.fill((7, 2), 4)
         summary = tf.fill((7, 7), 6)
-        outputs = lm_model(input_ids=context, decoder_input_ids=summary, use_cache=False)
+        outputs = lm_model(
+            input_ids=context, decoder_input_ids=summary, use_cache=False
+        )
         expected_shape = (*summary.shape, config.vocab_size)
         self.assertEqual(outputs.logits.shape, expected_shape)
 
@@ -359,15 +419,25 @@ class TFBartHeadTests(unittest.TestCase):
 @require_tf
 class TFBartModelIntegrationTest(unittest.TestCase):
     def test_inference_no_head(self):
-        model = TFBartForConditionalGeneration.from_pretrained("facebook/bart-large").model
+        model = TFBartForConditionalGeneration.from_pretrained(
+            "facebook/bart-large"
+        ).model
 
-        input_ids = _long_tensor([[0, 31414, 232, 328, 740, 1140, 12695, 69, 46078, 1588, 2]])
-        attention_mask = tf.cast(tf.math.not_equal(input_ids, model.config.pad_token_id), tf.int8)
+        input_ids = _long_tensor(
+            [[0, 31414, 232, 328, 740, 1140, 12695, 69, 46078, 1588, 2]]
+        )
+        attention_mask = tf.cast(
+            tf.math.not_equal(input_ids, model.config.pad_token_id), tf.int8
+        )
         output = model(input_ids=input_ids, attention_mask=attention_mask)[0]
         expected_shape = (1, 11, 1024)
         self.assertEqual(output.shape, expected_shape)
         expected_slice = tf.convert_to_tensor(
-            [[0.7144, 0.8143, -1.2813], [0.7144, 0.8143, -1.2813], [-0.0467, 2.5911, -2.1845]],
+            [
+                [0.7144, 0.8143, -1.2813],
+                [0.7144, 0.8143, -1.2813],
+                [-0.0467, 2.5911, -2.1845],
+            ],
         )
         tf.debugging.assert_near(output[:, :3, :3], expected_slice, atol=1e-3)
 
@@ -605,8 +675,17 @@ class TFBartModelIntegrationTest(unittest.TestCase):
             attention_mask=dct["attention_mask"],
         )
 
-        assert hypotheses_batch[:, 1].numpy().tolist() == [0, 0, 0, 0]  # test force_bos_token_to_be_generated
-        decoded = tok.batch_decode(hypotheses_batch, skip_special_tokens=True, clean_up_tokenization_spaces=False)
+        assert hypotheses_batch[:, 1].numpy().tolist() == [
+            0,
+            0,
+            0,
+            0,
+        ]  # test force_bos_token_to_be_generated
+        decoded = tok.batch_decode(
+            hypotheses_batch,
+            skip_special_tokens=True,
+            clean_up_tokenization_spaces=False,
+        )
         expected_batch = [
             EXPECTED_SUMMARY_FRANCE,
             EXPECTED_SUMMARY_SHORTER,
@@ -631,7 +710,9 @@ class FasterTFBartModelIntegrationTests(unittest.TestCase):
 
     @cached_property
     def xsum_1_1_model(self):
-        return TFBartForConditionalGeneration.from_pretrained("sshleifer/distilbart-xsum-1-1")
+        return TFBartForConditionalGeneration.from_pretrained(
+            "sshleifer/distilbart-xsum-1-1"
+        )
 
     def test_xsum_1_1_generation(self):
         model = self.xsum_1_1_model
@@ -989,5 +1070,11 @@ class FasterTFBartModelIntegrationTests(unittest.TestCase):
         )
         features = self.xsum_1_1_model.get_encoder()(**batch).last_hidden_state
 
-        expected = np.array([[-0.0828, -0.0251, -0.0674], [0.1277, 0.3311, -0.0255], [0.2613, -0.0840, -0.2763]])
+        expected = np.array(
+            [
+                [-0.0828, -0.0251, -0.0674],
+                [0.1277, 0.3311, -0.0255],
+                [0.2613, -0.0840, -0.2763],
+            ]
+        )
         assert np.allclose(features[0, :3, :3].numpy(), expected, atol=1e-3)

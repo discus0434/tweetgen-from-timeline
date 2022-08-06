@@ -35,7 +35,7 @@ def get_tweets_from_timeline(
             oldest_tweet_id = tweet.id
             tweets.append("<s>" + tweet.text + "</s>")
 
-        if n_roop > 3:
+        if n_roop > 4:
             print(f"roop {roop_idx} has been finished. wait for {900 // 4} secs...")
             time.sleep(900 // 4)
 

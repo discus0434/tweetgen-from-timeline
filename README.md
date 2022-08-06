@@ -59,8 +59,21 @@ ACCESS_TOKEN_SECRET = XXX
 ## Usage
 
 All you need is write a command below:
-```
+```zsh
 python main.py & disown
+```
+
+In addition, you can modify the number of tweets and fine-tuning per day to change values of `NUM_UPDATE_PER_DAY` and
+`NUM_TWEETS_PER_DAY` in `main.py`.
+
+For example, if you want to make tweets per 30min:
+```python
+NUM_TWEETS_PER_DAY = 48 # 86400 / 1800 = 48
+```
+
+do fine-tuning per hour:
+```python
+NUM_UPDATE_PER_DAY = 24
 ```
 
 ## Acknowledgements

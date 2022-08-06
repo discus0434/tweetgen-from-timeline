@@ -81,7 +81,7 @@ def main():
 
         for _ in range(NUM_TWEETS_PER_DAY // NUM_UPDATE_PER_DAY):
             tweet_generator.post_tweet()
-            time.sleep(86400 // NUM_TWEETS_PER_DAY // NUM_UPDATE_PER_DAY)
+            time.sleep(86400 // NUM_TWEETS_PER_DAY)
 
         del tweet_generator
 

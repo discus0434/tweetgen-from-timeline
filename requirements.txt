@@ -1,5 +1,5 @@
 -f https://download.pytorch.org/whl/torch_stable.html
-git+https://github.com/huggingface/transformers
+git+https://github.com/huggingface/transformers.git
 torch==1.9.0+cu111
 tweepy
 pandas

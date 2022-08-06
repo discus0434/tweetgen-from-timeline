@@ -15,18 +15,10 @@ ENV PATH=/root/miniconda3/bin:/usr/local/nvidia/bin:/usr/local/cuda/bin:/usr/loc
 RUN conda init bash
 RUN conda update -y conda
 
-RUN mkdir tweetgen-from-timeline
+RUN git clone https://github.com/discus0434/tweetgen-from-timeline.git
 WORKDIR /tweetgen-from-timeline
-
-RUN git clone https://github.com/huggingface/transformers.git
 
 # Setup conda environment
 RUN conda create -n tweetgen python=3.9
 RUN echo "source activate tweetgen" > ~/.bashrc
-RUN conda run -n tweetgen pip install \
-    torch==1.9.0+cu111 \
-    git+https://github.com/huggingface/transformers \
-    tweepy pandas numpy tqdm python-dotenv jupyter sklearn\
-    datasets evaluate sentencepiece \
-    -f https://download.pytorch.org/whl/torch_stable.html
-
+RUN conda run -n tweetgen pip install -r requirements.txt

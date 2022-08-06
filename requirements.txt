@@ -1,0 +1,13 @@
+-f https://download.pytorch.org/whl/torch_stable.html
+-e git+https://github.com/huggingface/transformers
+torch==1.9.0+cu111
+tweepy
+pandas
+numpy
+tqdm
+python-dotenv
+jupyter
+sklearn
+datasets
+evaluate
+sentencepiece

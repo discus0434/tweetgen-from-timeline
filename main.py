@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 import time
 import random
 
@@ -9,7 +10,7 @@ from transformers import T5Tokenizer, AutoModelForCausalLM
 from lib import make_client, get_tweets_from_timeline, finetune
 
 NUM_UPDATE_PER_DAY = 2
-NUM_TWEETS_PER_DAY = 72
+NUM_TWEETS_PER_DAY = 96
 
 
 class TweetGenerator:
@@ -64,7 +65,7 @@ class TweetGenerator:
             output = self.model.generate(
                 input_ids,
                 max_length=60,
-                min_length=10,
+                min_length=15,
                 do_sample=True,
                 pad_token_id=self.tokenizer.pad_token_id,
                 bos_token_id=self.tokenizer.bos_token_id,
@@ -78,7 +79,14 @@ class TweetGenerator:
 
     def post_tweet(self) -> None:
         json = {}
-        json["text"] = self.generate()
+
+        while True:
+            text = self.generate()
+
+            if not bool(re.search("|".join(["rt", "http", "@", "殺"]), text)):
+                break
+
+        json["text"] = text
 
         return self.client._make_request("POST", "/2/tweets", json=json, user_auth=True)
 

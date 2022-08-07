@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import re
 import time
 from pathlib import Path
 
@@ -27,9 +28,7 @@ def get_tweets_from_timeline(
         ).flatten(limit=200):
 
             # if tweet includes media or mention, skip it
-            if "http" in tweet.text:
-                continue
-            if tweet.text.startswith("@"):
+            if bool(re.search("|".join(["http", "@"]), tweet.text)):
                 continue
 
             oldest_tweet_id = tweet.id

@@ -20,7 +20,7 @@ class TweetGenerator:
         self.client = make_client()
 
         # Fetch tweets
-        get_tweets_from_timeline(self.client, max_tweets=800)
+        get_tweets_from_timeline(self.client, max_tweets=400)
 
         # Finetune and overwrite existing model
         finetune()
@@ -83,7 +83,10 @@ class TweetGenerator:
         while True:
             text = self.generate()
 
-            if not bool(re.search("|".join(["rt", "http", "@", "殺"]), text)):
+            if (
+                not bool(re.search("|".join(["rt", "http", "." "@", "殺"]), text))
+                and len(text) < 139
+            ):
                 break
 
         json["text"] = text

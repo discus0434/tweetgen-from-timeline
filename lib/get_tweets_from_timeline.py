@@ -28,7 +28,7 @@ def get_tweets_from_timeline(
         ).flatten(limit=200):
 
             # if tweet includes media or mention, skip it
-            if bool(re.search("|".join(["http", "@"]), tweet.text)):
+            if bool(re.search("|".join(["http", "@", "🟩"]), tweet.text)):
                 continue
 
             oldest_tweet_id = tweet.id
